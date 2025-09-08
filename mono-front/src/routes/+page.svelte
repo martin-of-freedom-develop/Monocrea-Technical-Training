@@ -27,7 +27,7 @@
     import BigRedButton from './BigRedButton.svelte';
     import horn from './horn.mp3';
 
-    let name='Svelte';
+    let name=$state('Svelte');
 
     let src='/tutorial/image.gif';
 
@@ -45,7 +45,7 @@
 
     const colors = ['red','orange','yellow','green','blue','indigo','violet'];
 
-    let selected=$state(colors[0])
+    // let selected=$state(colors[0])
 
     let things=$state([
         {id: 1, name: 'apple'},
@@ -60,6 +60,37 @@
     let m=$state({x:0, y:0});
 
     let value=$state(0);
+
+    let a=$state(1);
+
+    let b=$state(2);
+
+    let yes=$state(false);
+
+    let questions=$state([
+        {
+            id: 1,
+            text: `Where did you go to school?`
+        },
+        {
+            id: 2,
+            text: `What is your mother's name?`
+        },
+        {
+            id: 3,
+            text: `What is another personal fact that an attacker could easily find with Google?`
+        }
+    ]);
+
+    let selected=$state();
+
+    let answer=$state('');
+
+    let scoops = $state(1);
+
+    let flavours = $state([]);
+
+    const formatter = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
 
     const audio = new Audio();
     audio.src = horn;
@@ -83,6 +114,14 @@
     function honk() {
         audio.load();
         audio.play();
+    }
+
+    function handleSubmit(e) {
+        e.preventDefault();
+
+        alert(
+            `answered question ${selected.id} (${selected.text}) with "${answer}"`
+        );
     }
 
     $inspect(numbers).with(console.trace);
@@ -145,7 +184,7 @@
 
 <PackageInfo {...pkg}/>
 
-<h1 style="color: {selected}">Pick a colour</h1>
+<!--h1 style="color: {selected}">Pick a colour</h1-->
 
 <!--こちらを利用する場合はコメントアウトを外してください。-->
 <!--div>
@@ -210,3 +249,109 @@
 <br>
 
 <BigRedButton onclick={honk} />
+
+<br>
+<br>
+
+<input value={name}/>
+<h1>Hello {name}!</h1>
+
+<br>
+<br>
+
+<label>
+    <input type="number" bind:value={a} min="0" max="10"/>
+    <input type="range" bind:value={a} min="0" max="10"/>
+</label>
+
+<label>
+    <input type="number" bind:value={b} min="0" max="10"/>
+    <input type="range" bind:value={b} min="0" max="10"/> 
+</label>
+
+<p>{a}+{b}={a+b}</p>
+
+<label>
+    <input type="checkbox" bind:checked={yes}/>
+    Yes! Send me regular email spam
+</label>
+
+{#if yes}
+    <p>
+        Thank you. We will bombard your inbox and sell
+        your personal details.
+    </p>
+{:else}
+    <p>
+        You must opt in to continue. If you're not
+        paying, you're the product.
+    </p>
+{/if}
+
+<button disabled={!yes}>Subscribe</button>
+
+<h2>Insecurity questions</h2>
+
+<form onsubmit={handleSubmit}>
+    <select
+        value={selected}
+        onchange={() => (answer = '')}
+    >
+        {#each questions as question}
+            <option value={question}>
+                {question.text}
+            </option>
+        {/each}
+    </select>
+
+    <input bind:value={answer} />
+
+    <button disabled={!answer} type="submit">
+        Submit
+    </button>
+</form>
+
+<p>
+    selected question {selected ? selected.id : '[waiting...]'}
+</p>
+
+<h2>Size</h2>
+
+{#each [1, 2, 3] as number}
+    <label>
+        <input
+            type="radio"
+            name="scoops"
+            value={number}
+            bind:group={scoops}
+        />
+
+        {number} {number === 1 ? 'scoop' : 'scoops'}
+    </label>
+{/each}
+
+<h2>Flavours</h2>
+
+{#each ['cookies and cream', 'mint choc chip', 'raspberry ripple'] as flavour}
+    <label>
+        <input
+            type="checkbox"
+            name="flavours"
+            value={flavour}
+            bind:group={flavours}
+        />
+
+        {flavour}
+    </label>
+{/each}
+
+{#if flavours.length === 0}
+    <p>Please select at least one flavour</p>
+{:else if flavours.length > scoops}
+    <p>Can't order more flavours than scoops!</p>
+{:else}
+    <p>
+        You ordered {scoops} {scoops === 1 ? 'scoop' : 'scoops'}
+        of {formatter.format(flavours)}
+    </p>
+{/if}
