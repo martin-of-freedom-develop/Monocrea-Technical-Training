@@ -1,0 +1,25 @@
+{
+    "usersDataManagement": [
+        {
+            "accountID": "mono-data001",
+            "userID": "TestUser001",
+            "userPW": "TestUser111",
+            "accountCreate": "2025年9月8日",
+            "deleteFlg": 0
+        },
+        {
+            "accountID": "mono-data002",
+            "userID": "TestUser002",
+            "userPW": "TestUser112",
+            "accountCreate": "2025年9月9日",
+            "deleteFlg": 0
+        },
+        {
+            "accountID": "mono-data003",
+            "userID": "TestUser003",
+            "userPW": "TestUser113",
+            "accountCreate": "2025年9月9日",
+            "deleteFlg": 0
+        }
+    ]
+}

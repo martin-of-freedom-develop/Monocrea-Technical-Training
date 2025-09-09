@@ -13,6 +13,19 @@
         height: 100%;
         padding: 1rem;
     }*/
+
+    .grid {
+        display: grid;
+        grid-template-columns: 5em 1fr;
+        grid-template-rows: 1fr 1fr;
+        grid-gap: 1em;
+        height: 100%;
+    }
+
+    textarea {
+        flex: 1;
+        resize: none;
+    }
 </style>
 <script module>
     export const ssr = false;
@@ -26,6 +39,7 @@
     import Stepper from './Stepper.svelte';
     import BigRedButton from './BigRedButton.svelte';
     import horn from './horn.mp3';
+    import {marked} from 'marked';
 
     let name=$state('Svelte');
 
@@ -59,7 +73,7 @@
 
     let m=$state({x:0, y:0});
 
-    let value=$state(0);
+    //let value=$state(0);
 
     let a=$state(1);
 
@@ -89,6 +103,8 @@
     let scoops = $state(1);
 
     let flavours = $state([]);
+
+    let value = $state(`Some words are *italic*, some are **bold**\n\n- lists\n- are\n- cool`);
 
     const formatter = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
 
@@ -240,10 +256,10 @@
 
 <p>The current value is {value}</p>
 
-<Stepper
+<!--Stepper
     increment={()=>value+=1}
     decrement={()=>value-=1}
-/>
+/-->
 
 <br>
 <br>
@@ -332,7 +348,12 @@
 
 <h2>Flavours</h2>
 
-{#each ['cookies and cream', 'mint choc chip', 'raspberry ripple'] as flavour}
+<select multiple bind:value={flavours}>
+    {#each ['cookies and cream', 'mint choc chip', 'raspberry ripple'] as flavour}
+        <option>{flavour}</option>
+    {/each}
+</select>
+<!--{#each ['cookies and cream', 'mint choc chip', 'raspberry ripple'] as flavour}
     <label>
         <input
             type="checkbox"
@@ -343,7 +364,7 @@
 
         {flavour}
     </label>
-{/each}
+{/each}-->
 
 {#if flavours.length === 0}
     <p>Please select at least one flavour</p>
@@ -355,3 +376,11 @@
         of {formatter.format(flavours)}
     </p>
 {/if}
+
+<div class="grid">
+    input
+    <textarea bind:value></textarea>
+
+    output
+    <div>{@html marked(value)}</div>
+</div>
