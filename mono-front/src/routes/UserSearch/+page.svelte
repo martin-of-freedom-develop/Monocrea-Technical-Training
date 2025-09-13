@@ -1,3 +1,17 @@
+<!--
+* 画面名：ユーザ検索画面
+* プログラムファイル名：+page.svelte
+* 処理入力：$1. ユーザID（テキスト）
+* 　　　　　$2. ユーザ名（テキスト）
+* 処理内部入力: $1. バックエンド切り替えフラグ
+* 処理出力：$1. 単一ユーザ検索結果（完全一致検索）
+* 　　　　　$2. 全ユーザ検索結果
+* 外接サーバ：$1. json-server
+* 　　　　　　$2. Docker + PostgreSQL
+* 　　　　　　※バックエンド切り替えフラグにより、外接サーバの向き先を変更することができます。
+* 処理概要：
+* 　json-server若しくはPostgreSQLに格納されているユーザデータの検索を行います。
+-->
 <style>
     h1 {
         text-align: center;
@@ -72,26 +86,26 @@
         deleteFlg: number;
     };
 
-    const { form } = $props<{ form: {
+    const {form} = $props<{form: {
         allMode?: boolean;
         userID?: string;
         userName?: string;
         allResults?: Row[];
         error?: string | null;
-    } | null }>();
+    } | null}>();
 
-    let allMode  = $state(form?.allMode ?? false);
-    let userID   = $state(form?.userID ?? '');
+    let allMode = $state(form?.allMode ?? false);
+    let userID = $state(form?.userID ?? '');
     let userName = $state(form?.userName ?? '');
 
     let errorMessage = $state(form?.error ?? '');
-    let page        = $state(1);
-    let sortOrder   = $state<'asc' | 'desc'>('desc');
-    const pageSize  = 20;
+    let page = $state(1);
+    let sortOrder = $state<'asc' | 'desc'>('desc');
+    const pageSize = 20;
 
     // 表示用の実データ
-    let sorted     = $state<Row[]>([]);
-    let results    = $state<Row[]>([]);
+    let sorted = $state<Row[]>([]);
+    let results = $state<Row[]>([]);
     let totalCount = $state(0);
     let totalPages = $state(1);
 
@@ -108,10 +122,10 @@
         const pages = Math.max(1, Math.ceil(count / pageSize));
         const start = (page - 1) * pageSize;
 
-        sorted     = arr;
+        sorted = arr;
         totalCount = count;
         totalPages = pages;
-        results    = arr.slice(start, start + pageSize);
+        results = arr.slice(start, start + pageSize);
         errorMessage = form?.error ?? '';
     });
 
@@ -149,7 +163,7 @@
     />
 
     <div class="toggle-row">
-        <label for="allMode" style="text-align:left;">全件取得</label>
+        <label for="allMode" style="text-align:left;">{UIMaterial.material06}</label>
         <input id="allMode" type="checkbox" name="allMode" bind:checked={allMode} />
         <span style="font-size:.9rem; color:#666;">
             {allMode ? '全ユーザを取得します' : '完全一致で検索します'}
@@ -157,21 +171,24 @@
     </div>
 
     <div class="actions">
-        <button type="reset" class="secondary" onclick={() => { userID=''; userName=''; allMode=false; }}>リセット</button>
-        <button type="submit">検索</button>
+        <button type="reset" class="secondary" onclick={() => {userID=''; userName=''; allMode=false;}}>{UIMaterial.material04}</button>
+        <!--
+         検索ボタンを押下後、同じディレクトリの+page.server.ts内のactions.defaultが自動で呼ばれる。
+        -->
+        <button type="submit">{UIMaterial.material05}</button>
     </div>
 </form>
 
 {#if form}
     <section style="max-width: 960px; margin: 1rem auto 0;">
         {#if (form.allResults ?? []).length === 0}
-            <p>検索条件に一致するユーザは見つかりませんでした</p>
+            <p>{UIMaterial.material08}</p>
         {:else}
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr>
-                        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: .5rem;">ユーザID</th>
-                        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: .5rem;">ユーザ名</th>
+                        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: .5rem;">{UIMaterial.material02}</th>
+                        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: .5rem;">{UIMaterial.material03}</th>
                         <th style="text-align: left; border-bottom: 1px solid #ddd; padding: .5rem;">
                             <button
                                 type="button"
@@ -179,7 +196,7 @@
                                 onclick={toggleSort}
                                 aria-label="作成日の昇順/降順を切り替え"
                             >
-                                作成日 {sortOrder === 'asc' ? '▲' : '▼'}
+                                {UIMaterial.material07} {sortOrder === 'asc' ? '▲' : '▼'}
                             </button>
                         </th>
                     </tr>
