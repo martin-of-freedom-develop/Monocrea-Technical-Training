@@ -3,6 +3,12 @@
 研修用アプリケーションソースコードの管理リポジトリです
 
 [![Node.js CI](https://github.com/typicode/json-server/actions/workflows/node.js.yml/badge.svg)](https://github.com/typicode/json-server/actions/workflows/node.js.yml)
+[![Homebrew](https://img.shields.io/badge/Homebrew-Install-orange?logo=homebrew)](https://brew.sh/)
+[![Git](https://img.shields.io/badge/Git-Install-informational?logo=git)](https://git-scm.com/)
+[![Java](https://img.shields.io/badge/Java-Install-red?logo=openjdk)](https://adoptium.net/)
+[![pnpm](https://img.shields.io/badge/pnpm-Install-yellow?logo=pnpm)](https://pnpm.io/)
+[![Docker](https://img.shields.io/badge/Docker-Install-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![VS Code](https://img.shields.io/badge/VS%20Code-Install-007ACC?logo=visualstudiocode)](https://code.visualstudio.com/)
 
 ## リポジトリ作成日
 
@@ -23,7 +29,76 @@
 
 どちらでも同じ実行結果となりますので、ご自身の環境に合わせて開発環境の構築を進めてください。
 
+## 必要なソフトウェア
+
+- Homebrew (macOS Only)
+- Git
+- Java
+- Maven
+- Node.js
+- pnpm
+- Docker
+- VSCode
+
+次の手順より、必要なソフトウェアのインストールを初めていきます。
+
 ## mono-front開発環境の構築
+
+## ターミナルでのインストール作業
+
+手順１：ターミナルを起動し、以下コマンドを順次実行してください。
+
+```text
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+
+brew install git
+
+brew install corretto@21
+
+brew install maven
+
+brew install docker --cask
+
+brew install visual-studio-code --cask
+
+brew install pnpm
+
+brew install nodebrew
+```
+
+手順２：nodebrewのセットアップ
+
+```text
+nodebrew setup
+
+echo 'export PATH=$PATH:$HOME/.nodebrew/current/bin' >> ~/.bash_profile
+```
+
+手順３：インストールするnodeのバージョンを確認しセットします
+
+事前にLTSバージョンを確認します。
+[nodeLTS](https://github.com/nodejs/Release?tab=readme-ov-file#release-schedule "nodeLTSバージョン確認")
+
+nodeのインストール + 使用設定をします。  
+target versionはLTSバージョンに置き換えてください。
+
+```text
+nodebrew install-binary <target version>
+
+nodebrew use <target version>
+```
+
+手順４：nodeコマンドでバージョンを確認します。
+
+```text
+node -v
+```
+
+以下実行結果が出力されれば、セットアップは完了となります。
+
+```text
+v24.7.0
+```
 
 ## json-serverのインストールと構築
 
@@ -69,26 +144,26 @@ json-server配下には、db.jsonのみ配置されていますがこれはユ�
     "usersDataManagement": [
         {
             "id": 1,
-            "accountID": "mono-data001",
+            "userName": "佐藤 太郎",
             "userID": "TestUser001",
             "userPW": "TestUser111",
-            "accountCreate": "2025年9月8日",
+            "accountCreate": "2025-09-08",
             "deleteFlg": 0
         },
         {
             "id": 2,
-            "accountID": "mono-data002",
+            "userName": "鈴木 花子",
             "userID": "TestUser002",
             "userPW": "TestUser112",
-            "accountCreate": "2025年9月9日",
+            "accountCreate": "2025-09-09",
             "deleteFlg": 0
         },
         {
             "id": 3,
-            "accountID": "mono-data003",
+            "userName": "高橋 健一",
             "userID": "TestUser003",
             "userPW": "TestUser113",
-            "accountCreate": "2025年9月9日",
+            "accountCreate": "2025-09-09",
             "deleteFlg": 0
         }
     ]
@@ -111,11 +186,11 @@ curl http://localhost:3000/usersDataManagement/1
 
 ```json
 {
-  "id": "1",
-  "accountID": "mono-data001",
-  "userID": "TestUser001",
-  "userPW": "TestUser111",
-  "accountCreate": "2025年9月8日",
-  "deleteFlg": 0
+    "id": 1,
+    "userName": "佐藤 太郎",
+    "userID": "TestUser001",
+    "userPW": "TestUser111",
+    "accountCreate": "2025-09-08",
+    "deleteFlg": 0
 }
 ```
