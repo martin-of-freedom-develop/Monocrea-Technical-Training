@@ -13,7 +13,7 @@ VOLUME /var/lib/postgresql/data/pg_data
 ENV TZ Asia/Tokyo
 
 # 初期化用DDLファイルをコピー
-COPY ddl/USERMANAGEMENT.sql /docker-entrypoint-initdb.d/
+COPY ../ddl/USERMANAGEMENT.sql /docker-entrypoint-initdb.d/
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 		CMD pg_isready -U $POSTGRES_USER || exit 1

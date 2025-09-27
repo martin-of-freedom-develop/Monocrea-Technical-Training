@@ -8,15 +8,17 @@ import type {PageServerLoad} from './$types';
 const API_BASE = 'http://localhost:3000/usersDataManagement';
 
 type Row = {
+  // 基本は使わない
   id: number;
   userID: string;
   userName: string;
   userPW: string;
   accountCreate: string;
+  // 基本は使わない
   deleteFlg?: number;
 };
 
-export const load = (async ({ params, fetch, url }) => {
+export const load = (async ({params, fetch, url}) => {
   const userIDParam = String(params.userID ?? '').trim();
   const debug: Record<string, unknown> = {userID: userIDParam, where: '[userID]/+page.server.ts'};
 
@@ -48,7 +50,7 @@ export const load = (async ({ params, fetch, url }) => {
       const urlLike = `${API_BASE}?userID_like=${encodeURIComponent('^' + escapeRegExp(userIDParam) + '$')}&_sort=id&_order=desc&_limit=1`;
       debug.try_like = urlLike;
 
-      res = await fetch(urlLike, { cache: 'no-store' });
+      res = await fetch(urlLike, {cache: 'no-store'});
       debug.like_ok = res.ok;
       debug.like_status = res.status;
 
@@ -63,7 +65,7 @@ export const load = (async ({ params, fetch, url }) => {
       const byIdUrl = `${API_BASE}/${userIDParam}`;
       debug.try_byId = byIdUrl;
 
-      const byId = await fetch(byIdUrl, { cache: 'no-store' });
+      const byId = await fetch(byIdUrl, {cache: 'no-store'});
       debug.byId_ok = byId.ok;
       debug.byId_status = byId.status;
 
@@ -84,7 +86,7 @@ export const load = (async ({ params, fetch, url }) => {
 
 export const actions = {
   // 更新
-  update: async ({ request, params, fetch }) => {
+  update: async ({request, params, fetch}) => {
     const userIDParam = String(params.userID ?? '').trim();
 
     const form = await request.formData();
