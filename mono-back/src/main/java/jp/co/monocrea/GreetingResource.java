@@ -5,7 +5,14 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-@Path("/hello")
+/**
+ * <h1>GreetingResource</h1>
+ * 
+ * <h2>作成日</h2>
+ * 2025年9月27日
+ * 
+ */
+@Path("/mono")
 public class GreetingResource {
 
     @GET
