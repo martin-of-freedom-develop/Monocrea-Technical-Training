@@ -195,3 +195,38 @@ curl http://localhost:3000/usersDataManagement/1
     "deleteFlg": 0
 }
 ```
+
+## QuarkusプロジェクトのセットアップとDocker for PostgreSQLコンテナの作成
+
+当アプリケーションでは、バックエンドをjson-serverによるユーザデータ管理とQuarkus + Docker for PostgreSQLによるユーザデータ管理でスイッチ可能です。
+
+> [!NOTE]
+> json-serverによるユーザデータ管理環境のセットアップは「json-serverのインストールと構築」を参照しセットアップしてください。
+
+Quarkusプロジェクトを起動する前に、PostgreSQLコンテナを作成します。
+
+Dockerfileは以下パスに配置していますので、ターミナルでDockerfile配置フォルダまで移動し、docker runコマンドを実行してください。
+
+Dockerfileへのパス：mono-infra/docker
+
+```text
+docker run -d --name mono-db -p 5432:5432 -e POSTGRES_USER=a01 -e POSTGRES_PASSWORD=1qaz2WSX -e POSTGRES_DB=mono_db postgres:17
+```
+
+以上でPostgreSQLコンテナの作成と起動が完了しますので、続いてバックエンドであるQuarkusプロジェクトの実行に進んでください。
+
+バックエンドプロジェクトフォルダは「mono-back」になりますので、
+
+```text
+cd mono-back
+```
+
+でプロジェクトルートへ移動してください。
+
+プロジェクトルートへ移動後、以下コマンドでQuarkusプロジェクトを起動し、Postmanを利用して動作確認を実施してください。
+
+```text
+./mvnw quarkus:dev
+```
+
+URL：http://localhost:8080/mono
