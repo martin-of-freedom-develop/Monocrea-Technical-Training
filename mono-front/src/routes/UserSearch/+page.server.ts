@@ -15,8 +15,15 @@ type Row = {
 
 const API_BASE = 'http://localhost:3000/usersDataManagement';
 
+/**
+ * バックエンド切り替えフラグ
+ * 0 → json-server
+ * 1 → REST API
+ */
+// const changeBackendFlg = 0;
+
 export const load = (async () => {
-  return { form: null };
+  return {form: null};
 }) satisfies import('@sveltejs/kit').ServerLoad;
 
 export const actions = {
@@ -53,6 +60,7 @@ export const actions = {
         if (userID) queryString.set('userID', userID);
         if (userName) queryString.set('userName', userName);
       }
+      
       const url = queryString.toString() ? `${API_BASE}?${queryString}` : API_BASE;
 
       const response = await fetch(url, {
@@ -64,7 +72,7 @@ export const actions = {
       error = '検索に失敗しました（通信エラー）';
     }
 
-    return { allMode, userID, userName, allResults, error };
+    return {allMode, userID, userName, allResults, error};
   },
 
   create: async ({request, fetch}) => {

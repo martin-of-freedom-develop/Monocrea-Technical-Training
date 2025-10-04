@@ -39,7 +39,6 @@
 - pnpm
 - Docker
 - VSCode
-- Postman（REST APIでのAPI呼び出しテストで利用しますが、必須ではありません。）
 
 次の手順より、必要なソフトウェアのインストールを初めていきます。
 
@@ -148,24 +147,21 @@ json-server配下には、db.jsonのみ配置されていますがこれはユ�
             "userName": "佐藤 太郎",
             "userID": "TestUser001",
             "userPW": "TestUser111",
-            "accountCreate": "2025-09-08",
-            "deleteFlg": 0
+            "accountCreate": "2025-09-08"
         },
         {
             "id": 2,
             "userName": "鈴木 花子",
             "userID": "TestUser002",
             "userPW": "TestUser112",
-            "accountCreate": "2025-09-09",
-            "deleteFlg": 0
+            "accountCreate": "2025-09-09"
         },
         {
             "id": 3,
             "userName": "高橋 健一",
             "userID": "TestUser003",
             "userPW": "TestUser113",
-            "accountCreate": "2025-09-09",
-            "deleteFlg": 0
+            "accountCreate": "2025-09-09"
         }
     ]
 }
@@ -191,8 +187,7 @@ curl http://localhost:3000/usersDataManagement/1
     "userName": "佐藤 太郎",
     "userID": "TestUser001",
     "userPW": "TestUser111",
-    "accountCreate": "2025-09-08",
-    "deleteFlg": 0
+    "accountCreate": "2025-09-08"
 }
 ```
 
@@ -230,3 +225,64 @@ cd mono-back
 ```
 
 URL：http://localhost:8080/mono
+
+続いて、REST APIの動作確認を行います。
+
+> [!IMPORTANT]
+> REST APIのGTEやPUT、DELETEメソッドの動作確認を行うには、POSTメソッド（新規ユーザ登録API）を一番最初に呼び出す必要があります。
+
+- 新規ユーザ登録
+
+```text
+curl -X POST http://localhost:8080/users \
+  -H 'Content-Type: application/json' \
+  -d '{"userName":"Taro","userID":"taro003","password":"secret"}'
+```
+
+- ユーザデータ一覧取得
+
+```text
+curl -X GET http://localhost:8080/users
+```
+
+> 出力例
+
+```text
+[{"userName":"Taro","userID":"taro001","accountCreate":"2025-09-28","password":"secret"}]
+```
+
+- ユーザデータ単一取得（ユーザID指定）
+
+```text
+curl -X GET http://localhost:8080/users/by-userid/taro001
+```
+
+> 出力例
+
+```text
+[{"userName":"Taro","userID":"taro001","accountCreate":"2025-09-28","password":"secret"}]
+```
+
+- ユーザデータの更新
+
+```text
+curl -X PUT http://localhost:8080/users/1 \
+  -H 'Content-Type: application/json' \
+  -d '{"userPW":"newSecret","userName":"Taro Y."}'
+```
+
+> 出力例
+
+```text
+{"userName":"Taro Y.","userID":"taro001","accountCreate":"2025-09-28","password":"secret"}
+```
+
+- ユーザデータの削除
+
+```text
+curl -X DELETE http://localhost:8080/users/1
+```
+
+以上でQuarkusプロジェクトのセットアップとDocker for PostgreSQLコンテナの作成は終了となります。
+
+以降は、SVELTEプロジェクトも起動しAPIとの疎通が取れているかを確認してください。

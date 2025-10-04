@@ -7,6 +7,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.validation.Valid;
 
 import jp.co.monocrea.dto.UserDataDTO;
 import jp.co.monocrea.dto.UserViewDTO;
@@ -25,51 +26,51 @@ public class UserResource {
     @POST
     @Path("/{id}")
     public UserViewDTO getById(@PathParam("id") Long id) {
-        UserAccount e = UserAccount.findById(id);
-        if (e == null) {
+        UserAccount userAccount = UserAccount.findById(id);
+        if (userAccount == null) {
             throw new NotFoundException();
         }
-        return UserMapper.toView(e);
+        return UserMapper.toView(userAccount);
     }
 
     @GET
     @Path("/by-userid/{userId}")
     public UserViewDTO getByUserId(@PathParam("userId") String userId) {
-        UserAccount e = UserAccount.findByUserId(userId)
+        UserAccount userAccount = UserAccount.findByUserId(userId)
             .orElseThrow(NotFoundException::new);
-        return UserMapper.toView(e);
+        return UserMapper.toView(userAccount);
     }
 
     @POST
     @Transactional
-    public Response create(UserDataDTO dto) {
-        if (UserAccount.findByUserId(dto.getUserID()).isPresent()) {
+    public Response create(@Valid UserDataDTO userDataDTO) {
+        if (UserAccount.findByUserId(userDataDTO.getUserID()).isPresent()) {
             throw new ClientErrorException("userID already exists", 409);
         }
-        UserAccount e = UserMapper.toEntity(dto);
-        e.persist();
-        return Response.created(URI.create("/users/" + e.id))
-            .entity(UserMapper.toView(e))
-            .build();
+        UserAccount userAccount = UserMapper.toEntity(userDataDTO);
+        userAccount.persist();
+        return Response.created(URI.create("/users/" + userAccount.id))
+                .entity(UserMapper.toView(userAccount))
+                .build();
     }
 
     @PUT
     @Path("/{id}")
     @Transactional
-    public UserViewDTO update(@PathParam("id") Long id, UserDataDTO dto) {
-        UserAccount e = UserAccount.findById(id);
-        if (e == null) {
+    public UserViewDTO update(@PathParam("id") Long id, UserDataDTO userDataDTO) {
+        UserAccount userAccount = UserAccount.findById(id);
+        if (userAccount == null) {
             throw new NotFoundException();
         }
 
-        if (dto.getUserID() != null && !dto.getUserID().equals(e.userId)) {
-            if (UserAccount.findByUserId(dto.getUserID()).isPresent()) {
+        if (userDataDTO.getUserID() != null && !userDataDTO.getUserID().equals(userAccount.userId)) {
+            if (UserAccount.findByUserId(userDataDTO.getUserID()).isPresent()) {
                 throw new ClientErrorException("userID already exists", 409);
             }
-            e.userId = dto.getUserID();
+            userAccount.userId = userDataDTO.getUserID();
         }
-        UserMapper.applyUpdate(e, dto);
-        return UserMapper.toView(e);
+        UserMapper.applyUpdate(userAccount, userDataDTO);
+        return UserMapper.toView(userAccount);
     }
 
     @DELETE
