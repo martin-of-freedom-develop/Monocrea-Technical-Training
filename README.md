@@ -262,3 +262,27 @@ curl -X GET http://localhost:8080/users/by-userid/taro001
 ```text
 [{"userName":"Taro","userID":"taro001","accountCreate":"2025-09-28","password":"secret"}]
 ```
+
+- ユーザデータの更新
+
+```text
+curl -X PUT http://localhost:8080/users/1 \
+  -H 'Content-Type: application/json' \
+  -d '{"userPW":"newSecret","userName":"Taro Y."}'
+```
+
+> 出力例
+
+```text
+{"userName":"Taro Y.","userID":"taro001","accountCreate":"2025-09-28","password":"secret"}
+```
+
+- ユーザデータの削除
+
+```text
+curl -X DELETE http://localhost:8080/users/1
+```
+
+以上でQuarkusプロジェクトのセットアップとDocker for PostgreSQLコンテナの作成は終了となります。
+
+以降は、SVELTEプロジェクトも起動しAPIとの疎通が取れているかを確認してください。
