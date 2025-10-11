@@ -251,7 +251,6 @@ export const actions = {
       });
     }
 
-    // --- fetch 部だけ try/catch にする（redirect はこの外で投げる）---
     let id = entityId;
     if (!id) {
       try {
@@ -295,7 +294,6 @@ export const actions = {
       });
     }
 
-    // ← ここは try/catch の外：catch に飲まれないので OK
     throw redirect(303, `/UserDetails/${encodeURIComponent(userID)}?updated=1`);
   },
 
@@ -335,7 +333,6 @@ export const actions = {
       });
     }
 
-    // これも try/catch の外で投げる
     throw redirect(303, `/UserDetails/${encodeURIComponent(userIDParam)}?deleted=1`);
   }
 } satisfies Actions;

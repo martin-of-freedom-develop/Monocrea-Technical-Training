@@ -271,7 +271,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each results as r (r.userID)} <!-- ★ RESTでも一意になるキー -->
+          {#each results as r (r.userID)}
             <tr>
               <td style="border-bottom: 1px solid #f0f0f0; padding: .5rem;">
                 <a href={`/UserDetails/${encodeURIComponent(r.userID)}`} aria-label={`ユーザ ${r.userID} の詳細へ`} style="text-decoration: underline; font-weight: 600; cursor: pointer;">
