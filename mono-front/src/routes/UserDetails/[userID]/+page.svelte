@@ -1,28 +1,32 @@
-<!-- src/routes/UserDetails/[userID]/+page.svelte -->
 <style>
   h1 {
     text-align: center;
   }
+
   .wrapper {
     max-width: 640px;
     margin: 1rem auto;
   }
+
   table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
   }
+
   th, td {
     text-align: left;
     border-bottom: 1px solid #ddd;
     padding: .5rem;
     vertical-align: middle;
   }
+
   th {
     width: 12rem;
     background: #fafafa;
     font-weight: 700;
   }
+
   input {
     width: 100%;
     padding: .6rem .8rem;
@@ -30,11 +34,13 @@
     border-radius: .5rem;
     font-size: 1rem;
   }
+
   input:focus {
     outline: none;
     border-color: #f0b400;
     box-shadow: 0 0 0 3px rgba(240,180,0,.15);
   }
+
   .actions {
     display: flex;
     gap: 1rem;
@@ -42,6 +48,7 @@
     margin-top: 1rem;
     flex-wrap: wrap;
   }
+
   .btn {
     padding: .55rem 1rem;
     border: none;
@@ -53,31 +60,66 @@
     text-decoration: none;
     display: inline-block;
     line-height: 1;
-    transition: filter .15s ease-in-out, background .15s ease-in-out, border-color .15s ease-in-out;
+    transition: filter .15s ease-in-out,
+    background .15s ease-in-out,
+    border-color .15s ease-in-out;
   }
+
   .btn:hover {
     filter: brightness(0.98);
   }
+
   .btn.secondary {
     background: #eee;
     color: #222;
     border: 1px solid #ddd;
     font-weight: 700;
   }
+
   .btn.secondary:hover {
     background: #e8e8e8;
   }
+
   .btn.danger {
     background: #e23;
     color: #fff;
   }
+
   .btn.danger:hover {
     filter: brightness(0.97);
   }
+
   .note {
     color:#666;
     font-size:.9rem;
     margin-top:.25rem;
+  }
+
+  .toast {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    padding: .6rem .8rem;
+    border-radius: .5rem;
+    box-shadow: 0 6px 16px rgba(0,0,0,.18);
+    z-index: 1000;
+  }
+
+  .toast.success {
+    background: #e8f7ef;
+    border: 1px solid #b6e3c5;
+    color: #145c2e;
+    font-weight: 600;
+  }
+
+  .toast button {
+    all: unset;
+    cursor: pointer;
+    font-weight: 700;
+    padding: .2rem .4rem;
   }
 </style>
 
@@ -89,17 +131,15 @@
   const {data: raw, form} = $props();
   const data = raw as PageData;
 
-  // 成功（updated / deleted） or 失敗（form.error）をポップアップで表示
-  let popupMessage = $state<string>(data.successMessage || (form?.error ?? ''));
+  let successPopup = $state<string>(data.successMessage ?? '');
+  let errorPopup   = $state<string>(form?.error ?? '');
 
-  // 編集フィールド
   const edit = $state({
     userID: data.row?.userID ?? '',
     userName: data.row?.userName ?? '',
     userPW: data.row?.userPW ?? ''
   });
 
-  // 削除確認（ブラウザconfirmを利用）
   function confirmDelete() {
     return confirm('本当に削除しますか？\nこの操作は取り消せません。');
   }
@@ -110,6 +150,7 @@
 <div class="wrapper">
   {#if data.row}
     <form method="POST" action="?/update" autocomplete="off">
+      <input type="hidden" name="entityId" value={data.row?.id ?? 0} />
       <table>
         <tbody>
           <tr>
@@ -121,15 +162,11 @@
           </tr>
           <tr>
             <th>{UIMaterial.material03}</th>
-            <td>
-              <input name="userName" bind:value={edit.userName} required minlength="2" maxlength="30" placeholder="ユーザ名" />
-            </td>
+            <td><input name="userName" bind:value={edit.userName} required minlength="2" maxlength="30" placeholder="ユーザ名" /></td>
           </tr>
           <tr>
             <th>{UIMaterial.material04}</th>
-            <td>
-              <input name="userPW" bind:value={edit.userPW} type="text" required minlength="4" maxlength="50" placeholder="パスワード" />
-            </td>
+            <td><input name="userPW" bind:value={edit.userPW} type="text" required minlength="4" maxlength="50" placeholder="パスワード" /></td>
           </tr>
           <tr>
             <th>{UIMaterial.material05}</th>
@@ -140,14 +177,12 @@
 
       <div class="actions">
         <button type="submit" class="btn">保存する</button>
-
-        <!-- 削除は別アクション "?/delete" に POST。confirm でガード -->
         <button
           type="submit"
           class="btn danger"
           formaction="?/delete"
           formmethod="POST"
-          onclick={confirmDelete}
+          on:click={() => confirmDelete()}
         >
           削除する
         </button>
@@ -162,5 +197,15 @@
     </div>
   {/if}
 
-  <MessagePopup message={popupMessage} onClose={() => (popupMessage = '')} />
+  <MessagePopup
+    message={errorPopup}
+    onClose={() => (errorPopup = '')}
+  />
+
+  {#if successPopup}
+    <div class="toast success" role="status" aria-live="polite">
+      <span>{successPopup}</span>
+      <button aria-label="閉じる" on:click={() => (successPopup = '')}>×</button>
+    </div>
+  {/if}
 </div>

@@ -1,150 +1,341 @@
-// src/routes/UserDetails/[userID]/+page.server.ts
 export const ssr = true;
 export const prerender = false;
 
 import {fail, redirect, type Actions} from '@sveltejs/kit';
 import type {PageServerLoad} from './$types';
 
-const API_BASE = 'http://localhost:3000/usersDataManagement';
+const changeBackendFlg = 1 as 0 | 1;
 
 type Row = {
-  // 基本は使わない
   id: number;
   userID: string;
   userName: string;
   userPW: string;
   accountCreate: string;
-  // 基本は使わない
   deleteFlg?: number;
 };
 
-export const load = (async ({params, fetch, url}) => {
-  const userIDParam = String(params.userID ?? '').trim();
-  const debug: Record<string, unknown> = {userID: userIDParam, where: '[userID]/+page.server.ts'};
+type Backend = {
+  buildGetUrl(userID: string): string;
+  buildListUrlByUserID(userID: string): string;
+  buildUpdateRequest(entityId: number, payload: {
+    userID: string;
+    userName: string;
+    userPW: string
+  }): {
+    url: string; method: 'PATCH' | 'PUT'; body: Record<string, unknown>;
+  };
+  buildDeleteUrl(entityId: number): string;
+  normalizeToOne(json: unknown): Row | null;
+  normalizeToList(json: unknown): Row[];
+  base: string;
+};
 
-  // ポップアップ用メッセージ（更新 or 削除）
-  let successMessage = '';
-  if (url.searchParams.get('updated')) successMessage = 'ユーザ情報を更新しました。';
-  if (url.searchParams.get('deleted')) successMessage = 'ユーザを削除しました。';
+function str(v: unknown): string | undefined {
+  return typeof v === 'string' ? v : undefined;
+}
 
-  if (!userIDParam) {
-    return {userID: '', row: null, __debug: {...debug, reason: 'no userID in params'}, successMessage};
+function num(v: unknown): number | undefined {
+  return typeof v === 'number' ? v : undefined;
+}
+
+function normalizeOne(x: Record<string, unknown>): Row {
+  return {
+    id: num(x['id']) ?? 0,
+    userID: str(x['userID']) ?? str(x['userId']) ?? '',
+    userName: str(x['userName']) ?? '',
+    userPW: str(x['userPW']) ?? str(x['password']) ?? '',
+    accountCreate: str(x['accountCreate']) ?? str(x['createdAt']) ?? '',
+    deleteFlg: num(x['deleteFlg']),
+  };
+}
+
+const JSON_BACKEND: Backend = {
+  base: 'http://localhost:3000/usersDataManagement',
+  buildGetUrl(userID) {
+    return `${this.base}?userID=${encodeURIComponent(userID)}&_sort=id&_order=desc&_limit=1`;
+  },
+  buildListUrlByUserID(userID) {
+    return `${this.base}?userID=${encodeURIComponent(userID)}&_sort=id&_order=desc&_limit=1`;
+  },
+  buildUpdateRequest(entityId, {
+    userID,
+    userName,
+    userPW }) {
+    return {
+      url: `${this.base}/${entityId}`,
+      method: 'PATCH',
+      body: {
+        userID,
+        userName,
+        userPW
+      },
+    };
+  },
+  buildDeleteUrl(entityId) {
+    return `${this.base}/${entityId}`;
+  },
+  normalizeToOne(json) {
+    if (Array.isArray(json)) {
+      return json[0] ? normalizeOne(json[0] as Record<string, unknown>) : null;
+    }
+
+    if (json && typeof json === 'object') {
+      return normalizeOne(json as Record<string, unknown>);
+    }
+
+    return null;
+  },
+  normalizeToList(json) {
+    return Array.isArray(json) ? (json as unknown[]).map((x) => normalizeOne(x as Record<string, unknown>)) : [];
+  }
+};
+
+const REST_BACKEND: Backend = {
+  base: 'http://localhost:8080/users',
+  buildGetUrl(userID) {
+    return `${this.base}?userID=${encodeURIComponent(userID)}`;
+  },
+  buildListUrlByUserID(userID) {
+    return `${this.base}?userID=${encodeURIComponent(userID)}`;
+  },
+  buildUpdateRequest(entityId, {
+    userID,
+    userName,
+    userPW
+  }) {
+    return {
+      url: `${this.base}/${entityId}`,
+      method: 'PUT',
+      body: {
+        userID,
+        userName,
+        password: userPW
+      }
+    };
+  },
+  buildDeleteUrl(entityId) {
+    return `${this.base}/${entityId}`;
+  },
+  normalizeToOne(json) {
+    if (Array.isArray(json)) {
+      return json[0] ? normalizeOne(json[0] as Record<string, unknown>) : null;
+    }
+
+    if (json && typeof json === 'object') {
+      return normalizeOne(json as Record<string, unknown>);
+    }
+
+    return null;
+  },
+  normalizeToList(json) {
+    return Array.isArray(json) ? (json as unknown[]).map((x) => normalizeOne(x as Record<string, unknown>)) : [];
+  }
+};
+
+const BACKEND = changeBackendFlg === 0 ? JSON_BACKEND : REST_BACKEND;
+
+async function safeJson<T>(res: Response): Promise<T | null> {
+  if (res.status === 204) {
+    return null;
   }
 
-  const urlExact = `${API_BASE}?userID=${encodeURIComponent(userIDParam)}&_sort=id&_order=desc&_limit=1`;
-  debug.try_exact = urlExact;
+  const text = await res.text();
+  if (!text) {
+    return null;
+  }
 
   try {
-    let res = await fetch(urlExact, {cache: 'no-store'});
-    debug.exact_ok = res.ok;
-    debug.exact_status = res.status;
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
 
-    let row: Row | null = null;
-    if (res.ok) {
-      const rows = (await res.json()) as Row[];
-      debug.exact_count = rows?.length ?? 0;
-      row = rows?.[0] ?? null;
+async function fetchOneByUserID(fetchFn: typeof fetch, userID: string): Promise<Row | null> {
+  const url = BACKEND.buildListUrlByUserID(userID);
+  const res = await fetchFn(url, {cache: 'no-store'});
+  
+  if (!res.ok) {
+    return null;
+  }
+
+  const json = await safeJson<unknown>(res);
+  
+  if (json == null) {
+    return null;
+  }
+
+  const list = BACKEND.normalizeToList(json);
+  return list[0] ?? null;
+}
+
+export const load = (async ({
+  params,
+  fetch,
+  url
+}) => {
+  const userIDParam = String(params.userID ?? '').trim();
+
+  let successMessage = '';
+
+  if (url.searchParams.get('updated')) {
+    successMessage = 'ユーザ情報を更新しました。';
+  }
+
+  if (url.searchParams.get('deleted')) {
+    successMessage = 'ユーザを削除しました。';
+  }
+
+  if (!userIDParam) {
+    return {
+      userID: '',
+      row: null,
+      successMessage
+    };
+  }
+
+  try {
+    const res = await fetch(BACKEND.buildGetUrl(userIDParam), {cache: 'no-store'});
+    
+    if (!res.ok) {
+      return {
+        userID: userIDParam,
+        row: null,
+        successMessage
+      };
     }
 
-    if (!row) {
-      const urlLike = `${API_BASE}?userID_like=${encodeURIComponent('^' + escapeRegExp(userIDParam) + '$')}&_sort=id&_order=desc&_limit=1`;
-      debug.try_like = urlLike;
-
-      res = await fetch(urlLike, {cache: 'no-store'});
-      debug.like_ok = res.ok;
-      debug.like_status = res.status;
-
-      if (res.ok) {
-        const rows = (await res.json()) as Row[];
-        debug.like_count = rows?.length ?? 0;
-        row = rows?.[0] ?? null;
-      }
-    }
-
-    if (!row && /^\d+$/.test(userIDParam)) {
-      const byIdUrl = `${API_BASE}/${userIDParam}`;
-      debug.try_byId = byIdUrl;
-
-      const byId = await fetch(byIdUrl, {cache: 'no-store'});
-      debug.byId_ok = byId.ok;
-      debug.byId_status = byId.status;
-
-      if (byId.ok) {
-        const one = (await byId.json()) as Row;
-        if (one && (one.userID === userIDParam || String(one.id) === userIDParam)) {
-          row = one;
-        }
-      }
-    }
-
-    return {userID: userIDParam, row, __debug: debug, successMessage};
-  } catch (e) {
-    debug.error = e instanceof Error ? e.message : String(e);
-    return {userID: userIDParam, row: null, __debug: debug, successMessage};
+    const json = await safeJson<unknown>(res);
+    const row = json ? BACKEND.normalizeToOne(json) : null;
+    return {
+      userID: userIDParam,
+      row,
+      successMessage
+    };
+  } catch {
+    return {
+      userID: userIDParam,
+      row: null,
+      successMessage
+    };
   }
 }) satisfies PageServerLoad;
 
 export const actions = {
-  // 更新
   update: async ({request, params, fetch}) => {
     const userIDParam = String(params.userID ?? '').trim();
-
     const form = await request.formData();
+    const entityId = Number(form.get('entityId') ?? 0);
     const userID = String(form.get('userID') ?? userIDParam).trim();
     const userName = String(form.get('userName') ?? '').trim();
     const userPW = String(form.get('userPW') ?? '').trim();
 
-    if (!userID) return fail(400, {error: 'ユーザIDは必須です。', values: {userID, userName, userPW}});
-    if (!userName) return fail(400, {error: 'ユーザ名は必須です。', values: {userID, userName, userPW }});
+    if (!userID) {
+      return fail(400, {
+        error: 'ユーザIDは必須です。', values: {
+          userID,
+          userName,
+          userPW
+        }
+      });
+    }
 
-    // 現行レコードを特定（URLパラメータの userID で検索）
-    const findUrl = `${API_BASE}?userID=${encodeURIComponent(userIDParam)}&_sort=id&_order=desc&_limit=1`;
-    const found = await fetch(findUrl, {cache: 'no-store'});
-    if (!found.ok) return fail(found.status, {error: '既存ユーザの検索に失敗しました。'});
+    if (!userName) {
+      return fail(400, {
+        error: 'ユーザ名は必須です。', values: {
+          userID,
+          userName,
+          userPW
+        }
+      });
+    }
 
-    const rows = (await found.json()) as Row[];
-    const current = rows?.[0];
-    if (!current) return fail(404, {error: `ユーザ「${userIDParam}」が見つかりません。`});
+    // --- fetch 部だけ try/catch にする（redirect はこの外で投げる）---
+    let id = entityId;
+    if (!id) {
+      try {
+        const found = await fetchOneByUserID(fetch, userIDParam);
+        if (!found) {
+          return fail(404, {
+            error: `ユーザ「${userIDParam}」が見つかりません。`
+          });
+        }
+        id = found.id;
+      } catch {
+        return fail(500, {
+          error: 'ユーザ情報の更新に失敗しました（通信エラー）。'
+        });
+      }
+    }
 
-    // accountCreate は更新しない
-    const payload: Partial<Row> = {userID, userName, userPW};
+    try {
+      const req = BACKEND.buildUpdateRequest(id, {userID, userName, userPW});
+      const res = await fetch(req.url, {
+        method: req.method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(req.body)
+      });
 
-    const patchUrl = `${API_BASE}/${current.id}`;
-    const upd = await fetch(patchUrl, {
-      method: 'PATCH',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload)
-    });
-    if (!upd.ok) return fail(upd.status, {error: 'ユーザ情報の更新に失敗しました。'});
+      if (!res.ok) {
+        if (res.status === 409) {
+          return fail(409, {
+            error: 'このユーザIDは既に存在します。'
+          });
+        }
+        return fail(res.status, {
+          error: 'ユーザ情報の更新に失敗しました。'
+        });
+      }
+    } catch {
+      return fail(500, {
+        error: 'ユーザ情報の更新に失敗しました（通信エラー）。'
+      });
+    }
 
-    // 成功 → 303 で戻し、?updated=1
+    // ← ここは try/catch の外：catch に飲まれないので OK
     throw redirect(303, `/UserDetails/${encodeURIComponent(userID)}?updated=1`);
   },
 
-  // 削除
-  delete: async ({params, fetch}) => {
+  delete: async ({params, request, fetch}) => {
     const userIDParam = String(params.userID ?? '').trim();
+    const form = await request.formData();
+    const entityId = Number(form.get('entityId') ?? 0);
 
-    // まず現在のレコードを特定
-    const findUrl = `${API_BASE}?userID=${encodeURIComponent(userIDParam)}&_sort=id&_order=desc&_limit=1`;
-    const found = await fetch(findUrl, {cache: 'no-store'});
-    if (!found.ok) return fail(found.status, {error: '削除対象の検索に失敗しました。'});
+    let id = entityId;
+    if (!id) {
+      try {
+        const found = await fetchOneByUserID(fetch, userIDParam);
+        if (!found) {
+          return fail(404, {
+            error: `ユーザ「${userIDParam}」が見つかりません。`
+          });
+        }
+        id = found.id;
+      } catch {
+        return fail(500, {
+          error: 'ユーザの削除に失敗しました（通信エラー）。'
+        });
+      }
+    }
 
-    const rows = (await found.json()) as Row[];
-    const current = rows?.[0];
-    if (!current) return fail(404, {error: `ユーザ「${userIDParam}」が見つかりません。`});
+    try {
+      const delUrl = BACKEND.buildDeleteUrl(id);
+      const res = await fetch(delUrl, {method: 'DELETE'});
+      if (!res.ok) {
+        return fail(res.status, {
+          error: 'ユーザの削除に失敗しました。'
+        });
+      }
+    } catch {
+      return fail(500, {
+        error: 'ユーザの削除に失敗しました（通信エラー）。'
+      });
+    }
 
-    // json-server へ DELETE
-    const delUrl = `${API_BASE}/${current.id}`;
-    const res = await fetch(delUrl, {method: 'DELETE'});
-
-    if (!res.ok) return fail(res.status, {error: 'ユーザの削除に失敗しました。'});
-
-    // 成功 → 同じURLで再読込すると row は null になるが、ポップアップは表示される
+    // これも try/catch の外で投げる
     throw redirect(303, `/UserDetails/${encodeURIComponent(userIDParam)}?deleted=1`);
   }
 } satisfies Actions;
-
-function escapeRegExp(s: string) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}

@@ -18,6 +18,9 @@ import java.time.LocalDate;
  * @since 1.0
  */
 public class UserViewDTO {
+
+    public Long id;
+
     /**
      * ユーザ名（表示名）。
      */
@@ -54,7 +57,8 @@ public class UserViewDTO {
      * @param password ユーザパスワード
      * @param accountCreate アカウント作成日
      */
-    public UserViewDTO(String userName, String userID, String password, LocalDate accountCreate) {
+    public UserViewDTO(Long id, String userName, String userID, String password, LocalDate accountCreate) {
+        this.id = id;
         this.userName = userName;
         this.userID = userID;
         this.password = password;

@@ -19,19 +19,35 @@ import jp.co.monocrea.mapper.UserMapper;
 @Consumes(MediaType.APPLICATION_JSON)
 public class UserResource {
     @GET
-    public List<UserViewDTO> list() {
-        return UserAccount.<UserAccount>listAll().stream().map(UserMapper::toView).toList();
-    }
+    public Response list(@QueryParam("userID") String userID, @QueryParam("userId") String userIdAlias, @QueryParam("userName") String userName) {
+        String uid = (userID != null && !userID.isBlank())
+               ? userID
+               : ((userIdAlias != null && !userIdAlias.isBlank()) ? userIdAlias : null);
 
-    @POST
-    @Path("/{id}")
-    public UserViewDTO getById(@PathParam("id") Long id) {
-        UserAccount userAccount = UserAccount.findById(id);
-        if (userAccount == null) {
-            throw new NotFoundException();
+        List<UserAccount> users;
+        if (uid != null && userName != null && !userName.isBlank()) {
+            users = UserAccount.find("userId = ?1 and userName = ?2", uid, userName).list();
+        } else if (uid != null) {
+            users = UserAccount.find("userId = ?1", uid).list();
+        } else if (userName != null && !userName.isBlank()) {
+            users = UserAccount.find("userName = ?1", userName).list();
+        } else {
+            users = UserAccount.listAll();
         }
-        return UserMapper.toView(userAccount);
-    }
+
+        List<UserViewDTO> body = users.stream().map(UserMapper::toView).toList();
+        return Response.ok(body).build();
+}
+
+    // @GET
+    // @Path("/{id}")
+    // public UserViewDTO getById(@PathParam("id") Long id) {
+    //     UserAccount userAccount = UserAccount.findById(id);
+    //     if (userAccount == null) {
+    //         throw new NotFoundException();
+    //     }
+    //     return UserMapper.toView(userAccount);
+    // }
 
     @GET
     @Path("/by-userid/{userId}")

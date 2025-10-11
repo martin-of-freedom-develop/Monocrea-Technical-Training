@@ -71,7 +71,13 @@ public final class UserMapper {
      * @return クライアント返却用の{@link UserViewDTO}
      */
     public static UserViewDTO toView(UserAccount userAccount) {
-        return new UserViewDTO(userAccount.userName, userAccount.userId, userAccount.password, userAccount.accountCreate);
+        return new UserViewDTO(
+            userAccount.id,
+            userAccount.userName,
+            userAccount.userId,
+            userAccount.password,
+            userAccount.accountCreate
+            );
     }
 
     /**
