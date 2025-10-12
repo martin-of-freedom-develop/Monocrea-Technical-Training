@@ -1,288 +1,191 @@
-# Monocrea-Technical-Training
+# Monocrea Technical Training
 
-研修用アプリケーションソースコードの管理リポジトリです
+Monocrea の技術研修で扱うユーザ管理アプリケーション一式。Svelte 製フロントエンドと、`json-server` または Quarkus + PostgreSQL のバックエンドを切り替えて演習できます。
 
-[![Node.js CI](https://github.com/typicode/json-server/actions/workflows/node.js.yml/badge.svg)](https://github.com/typicode/json-server/actions/workflows/node.js.yml)
-[![Homebrew](https://img.shields.io/badge/Homebrew-Install-orange?logo=homebrew)](https://brew.sh/)
 [![Git](https://img.shields.io/badge/Git-Install-informational?logo=git)](https://git-scm.com/)
 [![Java](https://img.shields.io/badge/Java-Install-red?logo=openjdk)](https://adoptium.net/)
 [![pnpm](https://img.shields.io/badge/pnpm-Install-yellow?logo=pnpm)](https://pnpm.io/)
 [![Docker](https://img.shields.io/badge/Docker-Install-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![VS Code](https://img.shields.io/badge/VS%20Code-Install-007ACC?logo=visualstudiocode)](https://code.visualstudio.com/)
+[![Homebrew](https://img.shields.io/badge/Homebrew-Install-orange?logo=homebrew)](https://brew.sh/)
 
-## リポジトリ作成日
+---
 
-2025年9月7日
+## 目次
 
-## ユーザ管理アプリケーションの開発環境構築手順
+- [Monocrea Technical Training](#monocrea-technical-training)
+  - [目次](#目次)
+  - [概要](#概要)
+  - [リポジトリ構成](#リポジトリ構成)
+  - [セットアップ概要](#セットアップ概要)
+  - [前提ツールのインストール](#前提ツールのインストール)
+    - [1. Homebrew (macOS)](#1-homebrew-macos)
+    - [2. CLI / アプリ一括インストール](#2-cli--アプリ一括インストール)
+  - [Node.js (nodebrew) セットアップ](#nodejs-nodebrew-セットアップ)
+  - [フロントエンド mono-front](#フロントエンド-mono-front)
+  - [バックエンドの選択肢](#バックエンドの選択肢)
+    - [json-server を使う](#json-server-を使う)
+    - [Quarkus + PostgreSQL を使う](#quarkus--postgresql-を使う)
+  - [API 動作確認サンプル](#api-動作確認サンプル)
+  - [トラブルシューティング](#トラブルシューティング)
+  - [補足情報](#補足情報)
 
-当READMEは、「Monocrea Technical Training」で作成をしたユーザ管理アプリケーションの開発環境構築手順と実行方法についてまとめたドキュメントとなります。  
+## 概要
 
-> [!NOTE]
-> このリポジトリには、SVELTEチュートリアル実施分のソースコードが含まれています。
-> もし、SVELTEチュートリアル実施分の動作確認を実施したい場合は、「routes/+page.server.ts」を削除した上で実行をしてください。
+- SvelteKit ベースのフロントエンドと 2 系統のバックエンド (json-server / Quarkus) を切り替え可能。
+- CRUD 操作を題材に、SPA と REST API 双方の開発・検証手順を学習。
+- macOS / Windows いずれも動作想定、macOS は Homebrew によるセットアップ例を掲載。
+- Docker を使わない軽量構成 (json-server) と、実運用を意識した構成 (Quarkus + PostgreSQL) の両方を体験。
 
-また、ユーザ管理アプリケーションのバックエンドには、2種類の実行方法があります。
+## リポジトリ構成
 
-- json-serverによるCRUD操作
-- Docker + PostgreSQL、Quarkusを用いたRest Web ApplicationによるCRUD操作
+| ディレクトリ | 説明 |
+| --- | --- |
+| `mono-front` | SvelteKit 製フロントエンド。`pnpm dev` で起動します。 |
+| `mono-back` | Quarkus ベースの REST API。PostgreSQL と連携して動作します。 |
+| `mono-infra/docker` | PostgreSQL 用 Docker ユーティリティ。 |
+| `mono-infra/json-server` | `json-server` 用サンプルデータ (`db.json`)。 |
+| `package.json` (リポジトリ直下) | ツールの依存関係 (json-server など) を管理。 |
 
-どちらでも同じ実行結果となりますので、ご自身の環境に合わせて開発環境の構築を進めてください。
+## セットアップ概要
 
-## 必要なソフトウェア
+1. 必要な CLI / IDE / ランタイムをインストール。
+2. nodebrew で Node.js の LTS バージョンを用意。
+3. フロントエンド (`mono-front`) の依存関係を取得し、`pnpm dev` で起動。
+4. 利用したいバックエンド (json-server または Quarkus + PostgreSQL) を立ち上げ。
+5. ブラウザ / API クライアントで動作確認。
 
-- Homebrew (macOS Only)
-- Git
-- Java
-- Maven
-- Node.js
-- pnpm
-- Docker
-- VSCode
+## 前提ツールのインストール
 
-次の手順より、必要なソフトウェアのインストールを初めていきます。
+> macOS の例を記載しています。Windows / Linux の場合は各公式ドキュメントを参照してください。
 
-## mono-front開発環境の構築
+### 1. Homebrew (macOS)
 
-## ターミナルでのインストール作業
-
-手順１：ターミナルを起動し、以下コマンドを順次実行してください。
-
-```text
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-
-brew install git
-
-brew install corretto@21
-
-brew install maven
-
-brew install docker --cask
-
-brew install visual-studio-code --cask
-
-brew install pnpm
-
-brew install nodebrew
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-手順２：nodebrewのセットアップ
+### 2. CLI / アプリ一括インストール
 
-```text
+```bash
+brew install git corretto@21 maven pnpm nodebrew
+brew install --cask docker visual-studio-code
+```
+
+- Docker Desktop は初回に起動し、ライセンス同意とエンジン起動を済ませておきます。
+- Java (Corretto 21) と Maven は Quarkus 用、pnpm / nodebrew はフロントエンド & json-server 用です。
+
+## Node.js (nodebrew) セットアップ
+
+```bash
 nodebrew setup
-
-echo 'export PATH=$PATH:$HOME/.nodebrew/current/bin' >> ~/.bash_profile
+echo 'export PATH=$HOME/.nodebrew/current/bin:$PATH' >> ~/.zshrc
+source ~/.zshrc
 ```
 
-手順３：インストールするnodeのバージョンを確認しセットします
+> Bash を使用する場合は `~/.bash_profile` に書き込んでください。
 
-事前にLTSバージョンを確認します。
-[nodeLTS](https://github.com/nodejs/Release?tab=readme-ov-file#release-schedule "nodeLTSバージョン確認")
+1. LTS バージョンを [Node.js Release Schedule](https://github.com/nodejs/Release?tab=readme-ov-file#release-schedule) で確認。
+2. `<LTS_VERSION>` を置き換えてインストールします。
 
-nodeのインストール + 使用設定をします。  
-target versionはLTSバージョンに置き換えてください。
-
-```text
-nodebrew install-binary <target version>
-
-nodebrew use <target version>
-```
-
-手順４：nodeコマンドでバージョンを確認します。
-
-```text
+```bash
+nodebrew install-binary <LTS_VERSION>
+nodebrew use <LTS_VERSION>
 node -v
 ```
 
-以下実行結果が出力されれば、セットアップは完了となります。
+`v24.x.x` のような表示が出れば準備完了です。
 
-```text
-v24.7.0
+## フロントエンド mono-front
+
+```bash
+cd mono-front
+pnpm install
+pnpm dev --open
 ```
 
-## json-serverのインストールと構築
+- 既定では `http://localhost:5173` でアプリが開きます。
+- `.env` が必要な場合は `mono-front/.env.example` を参考に作成してください (存在する場合)。
 
-[json-server](https://github.com/typicode/json-server/tree/main "json-serverリポジトリ")
+## バックエンドの選択肢
 
-上記json-serverリポジトリリンクより、json-serverをインストールしていきます。
+### json-server を使う
 
-> [!IMPORTANT]
-> 以下json-serverのインストールはnpm側の不具合（Arboristの依存グラフでedgesOutを読むところでnullに遭遇）が発生しています。
-> 2025年春頃より「Cannot read properties of null (reading 'edgesOut')」が発生するようになり、npm CLI 側の issue でも報告があります。
-> 対処方法としては、「エラー対処」セクションを確認し対応をしてください。
+軽量なモック API。学習の初期ステップで推奨です。
 
-手順１：json-serverをインストールします。
+```bash
+# リポジトリ直下で依存関係を取得 (初回のみ)
+pnpm install
 
-```text
-npm install json-server
+# サンプル DB を監視しながら起動
+pnpm exec json-server mono-infra/json-server/db.json --watch --port 3001
 ```
 
-### エラー対処
+- API エンドポイント: `http://localhost:3001/users`
+- `db.json` は論理削除フラグなど研修用フィールドを含みます。
 
-```text
-# プロジェクト直下で
-rm -rf node_modules package-lock.json
-npm cache clean --force
-npm cache verify
+### Quarkus + PostgreSQL を使う
 
-# もう一度
-npm install
-# 目的のパッケージ
-npm install json-server
-```
+実運用に近い構成。Docker で DB を立ち上げ、Quarkus を Dev モードで起動します。
 
-手順２：json-serverのインストールが完了後、ターミナルを開き「mono-infra/json-server」まで移動します。
+```bash
+# PostgreSQL コンテナ起動 (初回)
+docker run -d --name mono-db \
+  -p 5432:5432 \
+  -e POSTGRES_USER=a01 \
+  -e POSTGRES_PASSWORD=1qaz2WSX \
+  -e POSTGRES_DB=mono_db \
+  postgres:17
 
-```text
-cd mono-infra/json-server
-```
-
-json-server配下には、db.jsonのみ配置されていますがこれはユーザ管理対象のデータとなります。
-
-```json
-{
-    "usersDataManagement": [
-        {
-            "id": 1,
-            "userName": "佐藤 太郎",
-            "userID": "TestUser001",
-            "userPW": "TestUser111",
-            "accountCreate": "2025-09-08"
-        },
-        {
-            "id": 2,
-            "userName": "鈴木 花子",
-            "userID": "TestUser002",
-            "userPW": "TestUser112",
-            "accountCreate": "2025-09-09"
-        },
-        {
-            "id": 3,
-            "userName": "高橋 健一",
-            "userID": "TestUser003",
-            "userPW": "TestUser113",
-            "accountCreate": "2025-09-09"
-        }
-    ]
-}
-```
-
-手順３：json-serverまで移動後、以下コマンドでインストールしたjson-serverを起動します。
-
-```text
-npx json-server db.json
-```
-
-手順４：起動後、正常に起動しているかどうかを確認するために以下コマンドを実行してください。
-
-```text
-curl http://localhost:3000/usersDataManagement/1
-```
-
-以下レスポンスが返却されれば、json-serverは正常に起動していますので、「json-serverのインストールと構築」手順は終了となります。
-
-```json
-{
-    "id": 1,
-    "userName": "佐藤 太郎",
-    "userID": "TestUser001",
-    "userPW": "TestUser111",
-    "accountCreate": "2025-09-08"
-}
-```
-
-## QuarkusプロジェクトのセットアップとDocker for PostgreSQLコンテナの作成
-
-当アプリケーションでは、バックエンドをjson-serverによるユーザデータ管理とQuarkus + Docker for PostgreSQLによるユーザデータ管理でスイッチ可能です。
-
-> [!NOTE]
-> json-serverによるユーザデータ管理環境のセットアップは「json-serverのインストールと構築」を参照しセットアップしてください。
-
-Quarkusプロジェクトを起動する前に、PostgreSQLコンテナを作成します。
-
-Dockerfileは以下パスに配置していますので、ターミナルでDockerfile配置フォルダまで移動し、docker runコマンドを実行してください。
-
-Dockerfileへのパス：mono-infra/docker
-
-```text
-docker run -d --name mono-db -p 5432:5432 -e POSTGRES_USER=a01 -e POSTGRES_PASSWORD=1qaz2WSX -e POSTGRES_DB=mono_db postgres:17
-```
-
-以上でPostgreSQLコンテナの作成と起動が完了しますので、続いてバックエンドであるQuarkusプロジェクトの実行に進んでください。
-
-バックエンドプロジェクトフォルダは「mono-back」になりますので、
-
-```text
+# Quarkus プロジェクトを Dev モードで起動
 cd mono-back
-```
-
-でプロジェクトルートへ移動してください。
-
-プロジェクトルートへ移動後、以下コマンドでQuarkusプロジェクトを起動し、Postmanを利用して動作確認を実施してください。
-
-```text
 ./mvnw quarkus:dev
 ```
 
-URL：http://localhost:8080/mono
+- クエリ確認用 URL: `http://localhost:8080/mono`
+- `mono-back/src/main/resources/application.properties` で接続設定を変更できます。
+- 別ターミナルで `docker ps` に `mono-db` が表示されていることを確認してください。
 
-続いて、REST APIの動作確認を行います。
+## API 動作確認サンプル
 
-> [!IMPORTANT]
-> REST APIのGTEやPUT、DELETEメソッドの動作確認を行うには、POSTメソッド（新規ユーザ登録API）を一番最初に呼び出す必要があります。
+> POST を最初に実行すると、他メソッドで使用するデータが作成されます。
 
-- 新規ユーザ登録
-
-```text
+```bash
+# 新規ユーザ登録
 curl -X POST http://localhost:8080/users \
   -H 'Content-Type: application/json' \
   -d '{"userName":"Taro","userID":"taro003","password":"secret"}'
-```
 
-- ユーザデータ一覧取得
+# ユーザ一覧取得
+curl http://localhost:8080/users
 
-```text
-curl -X GET http://localhost:8080/users
-```
+# ユーザ単一取得 (ユーザ ID 指定)
+curl http://localhost:8080/users/by-userid/taro001
 
-> 出力例
-
-```text
-[{"userName":"Taro","userID":"taro001","accountCreate":"2025-09-28","password":"secret"}]
-```
-
-- ユーザデータ単一取得（ユーザID指定）
-
-```text
-curl -X GET http://localhost:8080/users/by-userid/taro001
-```
-
-> 出力例
-
-```text
-[{"userName":"Taro","userID":"taro001","accountCreate":"2025-09-28","password":"secret"}]
-```
-
-- ユーザデータの更新
-
-```text
+# ユーザ情報更新
 curl -X PUT http://localhost:8080/users/1 \
   -H 'Content-Type: application/json' \
   -d '{"userPW":"newSecret","userName":"Taro Y."}'
-```
 
-> 出力例
-
-```text
-{"userName":"Taro Y.","userID":"taro001","accountCreate":"2025-09-28","password":"secret"}
-```
-
-- ユーザデータの削除
-
-```text
+# ユーザ削除
 curl -X DELETE http://localhost:8080/users/1
 ```
 
-以上でQuarkusプロジェクトのセットアップとDocker for PostgreSQLコンテナの作成は終了となります。
+`json-server` 利用時は `--port` オプションに合わせて URL のポート番号を変更してください (例: `3001`)。
 
-以降は、SVELTEプロジェクトも起動しAPIとの疎通が取れているかを確認してください。
+## トラブルシューティング
+
+- `npm ERR! Cannot read properties of null (reading 'edgesOut')`
+  - npm v10 系の既知不具合です。`npm install -g npm@latest` で更新するか、`pnpm install` / `pnpm exec json-server ...` を利用してください。
+  - それでも解消しない場合は `rm -rf node_modules package-lock.json` 後に `pnpm install` を実行します。
+- Docker コンテナが起動しない
+  - `docker ps -a` で状態を確認し、既存の `mono-db` がある場合は `docker start mono-db` で再起動、不要なものは `docker rm mono-db` で削除してから再実行してください。
+- フロントエンドから API に接続できない
+  - `mono-front/src/lib/constants/*` などの API エンドポイント設定がバックエンドのポートと一致しているか確認してください。
+
+## 補足情報
+
+- リポジトリ作成日: 2025 年 9 月 7 日
+
+> [!NOTE]
+> リポジトリには Svelte チュートリアルの演習コードも含まれています。チュートリアルを単体で動かしたい場合は `mono-front/src/routes/+page.server.ts` を一時的に削除して実行してください (演習終了後は戻すことを推奨)。

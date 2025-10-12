@@ -40,7 +40,7 @@
   .popup-box p {
     margin-bottom: 1rem;
     font-weight: 600;
-      color: #c00;
+    color: #c00;
   }
 
   /** =====OKボタン（閉じる）===== */
