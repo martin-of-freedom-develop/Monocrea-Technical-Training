@@ -288,6 +288,15 @@
     });
     const count = arr.length;
     const pages = Math.max(1, Math.ceil(count / pageSize));
+
+    if (page > pages) {
+      page = pages;
+    }
+
+    if (page < 1) {
+      page = 1;
+    }
+
     const start = (page - 1) * pageSize;
     sorted = arr;
     totalCount = count;
@@ -347,6 +356,8 @@
     if (p < 1 || p > totalPages) {
       return;
     }
+
+    page = p;
   }
   
   /**
@@ -537,7 +548,7 @@
       </table>
       <!--ページネーション-->
       <div style="display: flex; gap: .5rem; justify-content: center; margin-top: 1rem;">
-        <button class="secondary" onclick={
+        <button type="button" class="secondary" onclick={
           () => goPage(page - 1)
         } disabled={
           page <= 1
@@ -553,7 +564,7 @@
           totalCount
         } 件）</span>
 
-        <button onclick={
+        <button type="button" onclick={
           () => goPage(page + 1)
         } disabled={
           page >= totalPages
