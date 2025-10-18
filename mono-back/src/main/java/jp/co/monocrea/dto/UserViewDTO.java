@@ -19,49 +19,50 @@ import java.time.LocalDate;
  */
 public class UserViewDTO {
 
-    public Long id;
+  public Long id;
 
-    /**
-     * ユーザ名（表示名）。
-     */
-    public String userName;
+  /**
+  * ユーザ名（表示名）。
+  */
+  public String userName;
 
-    /**
-     * 業務上の一意なユーザID。
-     */
-    public String userID;
+  /**
+  * 業務上の一意なユーザID。
+  */
+  public String userID;
 
-    /**
-     * アカウント作成日。
-     */
-    public LocalDate accountCreate;
+  /**
+  * アカウント作成日。
+  */
+  public LocalDate accountCreate;
 
-    /**
-     * ユーザパスワード
-     */
-    public String password;
+  /**
+  * ユーザパスワード
+  */
+  public String password;
 
-    /**
-     * デフォルトコンストラクタ。
-     * <p>フレームワークやシリアライザ向けに用意されています。</p>
-     */
-    public UserViewDTO() {
+  /**
+  * デフォルトコンストラクタ。
+  * <p>フレームワークやシリアライザ向けに用意されています。</p>
+  */
+  public UserViewDTO() {
 
-    }
+  }
 
-    /**
-     * 各プロパティを指定して{@code UserViewDTO}を生成します。
-     * 
-     * @param userName ユーザ名（表示名）
-     * @param userID 業務上の一意なユーザID
-     * @param password ユーザパスワード
-     * @param accountCreate アカウント作成日
-     */
-    public UserViewDTO(Long id, String userName, String userID, String password, LocalDate accountCreate) {
-        this.id = id;
-        this.userName = userName;
-        this.userID = userID;
-        this.password = password;
-        this.accountCreate = accountCreate;
-    }
+  /**
+  * 各プロパティを指定して{@code UserViewDTO}を生成します。
+  * 
+  * @param id 一意なid
+  * @param userName ユーザ名（表示名）
+  * @param userID 業務上の一意なユーザID
+  * @param password ユーザパスワード
+  * @param accountCreate アカウント作成日
+  */
+  public UserViewDTO(Long id, String userName, String userID, String password, LocalDate accountCreate) {
+    this.id = id;
+    this.userName = userName;
+    this.userID = userID;
+    this.password = password;
+    this.accountCreate = accountCreate;
+  }
 }

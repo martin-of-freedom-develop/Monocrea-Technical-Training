@@ -37,6 +37,8 @@ const changeBackendFlg = 1 as 0 | 1;
 type Row = {
   // 更新/削除時に使用（REST API/json-server共通）
   id: number;
+  // json-serverでもQuarkusでも両方対応
+  idPath?: string | number;
   // 表示・遷移キー
   userID: string;
   userName: string;
@@ -59,7 +61,7 @@ type Backend = {
   // userIDで0〜1件の配列を返す検索URL（id再解決にも使用）
   buildListUrlByUserID(userID: string): string;
   // 更新APIのHTTP情報（URL/メソッド/ボディ）
-  buildUpdateRequest(entityId: number, payload: {
+  buildUpdateRequest(entityId: string | number, payload: {
     userID: string;
     userName: string;
     userPW: string
@@ -67,7 +69,7 @@ type Backend = {
     url: string; method: 'PATCH' | 'PUT'; body: Record<string, unknown>;
   };
   // 削除APIのURL
-  buildDeleteUrl(entityId: number): string;
+  buildDeleteUrl(entityId: string | number): string;
   // JSON→Row（1件）
   normalizeToOne(json: unknown): Row | null;
   // JSON→Row[] 
@@ -93,6 +95,7 @@ function num(v: unknown): number | undefined {
 function normalizeOne(x: Record<string, unknown>): Row {
   return {
     id: num(x['id']) ?? 0,
+    idPath: x['id'] as string | number | undefined,
     // REST APIはuserIdの場合あり
     userID: str(x['userID']) ?? str(x['userId']) ?? '',
     userName: str(x['userName']) ?? '',
@@ -111,21 +114,11 @@ const JSON_BACKEND: Backend = {
   base: 'http://localhost:3000/usersDataManagement',
   buildGetUrl(userID) {
     // 厳密一致1件（配列）を返すクエリ
-    return `${
-      this.base
-    }?userID=${
-      encodeURIComponent(userID)
-    }&_sort=id&_order=desc&_limit=1`;
+    return `${this.base}?userID=${encodeURIComponent(userID)}&_sort=id&_order=desc&_limit=1`;
   },
 
   buildListUrlByUserID(userID) {
-    return `${
-      this.base
-    }?userID=${
-      encodeURIComponent(
-        userID
-      )
-    }&_sort=id&_order=desc&_limit=1`;
+    return `${this.base}?userID=${encodeURIComponent(userID)}&_sort=id&_order=desc&_limit=1`;
   },
 
   buildUpdateRequest(entityId, {
@@ -135,11 +128,7 @@ const JSON_BACKEND: Backend = {
   }) {
     // json-serverは部分更新PATCH/:id
     return {
-      url: `${
-        this.base
-      }/${
-        entityId
-      }`,
+      url: `${this.base}/${encodeURIComponent(String(entityId))}`,
       method: 'PATCH',
       body: {
         userID,
@@ -149,11 +138,7 @@ const JSON_BACKEND: Backend = {
     };
   },
   buildDeleteUrl(entityId) {
-    return `${
-      this.base
-    }/${
-      entityId
-    }`;
+    return `${this.base}/${encodeURIComponent(String(entityId))}`;
   },
 
   normalizeToOne(json) {
@@ -181,18 +166,10 @@ const REST_BACKEND: Backend = {
   base: 'http://localhost:8080/users',
   buildGetUrl(userID) {
     // users?userID=xxxとして配列を受け取りnormalize側で吸収
-    return `${
-      this.base
-    }?userID=${
-      encodeURIComponent(userID)
-    }`;
+    return `${this.base}?userID=${encodeURIComponent(userID)}`;
   },
   buildListUrlByUserID(userID) {
-    return `${
-      this.base
-    }?userID=${
-      encodeURIComponent(userID)
-    }`;
+    return `${this.base}?userID=${encodeURIComponent(userID)}`;
   },
   buildUpdateRequest(entityId, {
     userID,
@@ -201,11 +178,7 @@ const REST_BACKEND: Backend = {
   }) {
     // REST APIはPUT/users/{id}、フィールド名はpassword
     return {
-      url: `${
-        this.base
-      }/${
-        entityId
-      }`,
+      url: `${this.base}/${entityId}`,
       method: 'PUT',
       body: {
         userID,
@@ -215,11 +188,7 @@ const REST_BACKEND: Backend = {
     };
   },
   buildDeleteUrl(entityId) {
-    return `${
-      this.base
-    }/${
-      entityId
-    }`;
+    return `${this.base}/${entityId}`;
   },
   normalizeToOne(json) {
     if (Array.isArray(json)) {
@@ -396,17 +365,18 @@ export const actions = {
 
     // id未指定ならuserIDから再解決（REST API/json-server共通）
     let id = entityId;
+    let foundRow: Row | null = null;
     if (!id) {
       try {
-        const found = await fetchOneByUserID(fetch, userIDParam);
-        if (!found) {
+        foundRow = await fetchOneByUserID(fetch, userIDParam);
+        if (!foundRow) {
           return fail(404, {
             error: `ユーザ「${
               userIDParam
             }」が見つかりません。`
           });
         }
-        id = found.id;
+        id = foundRow.id;
       } catch {
         return fail(500, {
           error: 'ユーザ情報の更新に失敗しました（通信エラー）。'
@@ -414,9 +384,11 @@ export const actions = {
       }
     }
 
+    const idForPath: string | number = (changeBackendFlg === 0) ? (foundRow?.idPath ?? id) : id;
+
     // 更新リクエスト生成＆実行
     try {
-      const req = BACKEND.buildUpdateRequest(id, {
+      const req = BACKEND.buildUpdateRequest(idForPath, {
         userID,
         userName,
         userPW
@@ -462,17 +434,18 @@ export const actions = {
     const entityId = Number(form.get('entityId') ?? 0);
 
     let id = entityId;
+    let foundRow: Row | null = null;
     if (!id) {
       try {
-        const found = await fetchOneByUserID(fetch, userIDParam);
-        if (!found) {
+        foundRow = await fetchOneByUserID(fetch, userIDParam);
+        if (!foundRow) {
           return fail(404, {
             error: `ユーザ「${
               userIDParam
             }」が見つかりません。`
           });
         }
-        id = found.id;
+        id = foundRow.id;
       } catch {
         return fail(500, {
           error: 'ユーザの削除に失敗しました（通信エラー）。'
@@ -480,9 +453,11 @@ export const actions = {
       }
     }
 
+    const idForPath: string | number = (changeBackendFlg === 1) ? (foundRow?.idPath ?? id) : id;
+
     // 削除実行
     try {
-      const delUrl = BACKEND.buildDeleteUrl(id);
+      const delUrl = BACKEND.buildDeleteUrl(idForPath);
       const res = await fetch(delUrl, {
         method: 'DELETE'
       });

@@ -36,7 +36,7 @@ type Row = {
 };
 
 // 0=json-server/1=REST API（必要に応じて切替）
-const changeBackendFlg = 1 as 0 | 1;
+const changeBackendFlg = 0 as 0 | 1;
 
 // 検索URL生成用の入力値
 type BuildArgs = {
@@ -93,19 +93,11 @@ const JSON_BACKEND: Backend = {
     
     const q = qs.toString();
     
-    return q ? `${
-      this.base
-    }?${
-      q
-    }` : this.base;
+    return q ? `${this.base}?${q}` : this.base;
   },
   dupCheckUrl(userID) {
     // 1件でも存在すれば配列が返る
-    return `${
-      this.base
-    }?userID=${
-      encodeURIComponent(userID)
-    }&_limit=1`;
+    return `${this.base}?userID=${encodeURIComponent(userID)}&_limit=1`;
   },
   buildCreateBody(data) {
     // json-serverではdeleteFlgを持っている前提
@@ -150,19 +142,11 @@ const REST_BACKEND: Backend = {
       qs.set('userName', userName);
     }
 
-    return `${
-      this.base
-    }?${
-      qs.toString()
-    }`;
+    return `${this.base}?${qs.toString()}`;
   },
   dupCheckUrl(userID) {
     // 200=存在、404=未存在
-    return `${
-      this.base
-    }/by-userid/${
-      encodeURIComponent(userID)
-    }`;
+    return `${this.base}/by-userid/${encodeURIComponent(userID)}`;
   },
   buildCreateBody({
     userID,
@@ -192,7 +176,7 @@ const REST_BACKEND: Backend = {
 };
 
 // 実際に使用するバックエンドをスイッチ
-const BACKEND = changeBackendFlg === 0 ? JSON_BACKEND : REST_BACKEND;
+const BACKEND = changeBackendFlg === 1 ? JSON_BACKEND : REST_BACKEND;
 
 /**
  * ============================
