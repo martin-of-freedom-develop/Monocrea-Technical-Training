@@ -190,6 +190,8 @@
   let successPopup = $state<string>(data.successMessage ?? '');
   let errorPopup   = $state<string>(form?.error ?? '');
 
+  let formEl: HTMLFormElement | null = null;
+
   /**
    * ===============================
    * 編集モデル（双方向バインド）
@@ -210,6 +212,14 @@
   function confirmDelete() {
     return confirm('本当に削除しますか？\nこの操作は取り消せません。');
   }
+
+  function onDeleteClick(e: MouseEvent) {
+    e.preventDefault();
+    const btn = e.currentTarget as HTMLButtonElement;
+    if (confirmDelete()) {
+      formEl?.requestSubmit(btn);
+    }
+  }
 </script>
 
 <!--画面タイトル-->
@@ -224,7 +234,7 @@
       - action="?/update"でnamed action "update"を呼び出し
       - entityIdはREST API/json-server双方で更新・削除に利用
     -->
-    <form method="POST" action="?/update" autocomplete="off">
+    <form method="POST" action="?/update" autocomplete="off" bind:this={formEl}>
       <!--エンティティID（hidden）-->
       <input type="hidden" name="entityId" value={
         data.row?.id ?? 0
@@ -300,11 +310,10 @@
           class="btn danger"
           formaction="?/delete"
           formmethod="POST"
-          on:click={
-            () => confirmDelete()
+          on:click|preventDefault={
+            onDeleteClick
           }
         >
-
           {
             UIMaterial.material08
           }

@@ -31,7 +31,7 @@ import type {
 } from './$types';
 
 // 0=json-server / 1=REST API（必要に応じて切替）
-const changeBackendFlg = 1 as 0 | 1;
+const changeBackendFlg = 0 as 0 | 1;
 
 // サーバ⇔クライアントで扱う正規化済みの行データ型
 type Row = {
@@ -453,7 +453,7 @@ export const actions = {
       }
     }
 
-    const idForPath: string | number = (changeBackendFlg === 1) ? (foundRow?.idPath ?? id) : id;
+    const idForPath: string | number = (changeBackendFlg === 0) ? (foundRow?.idPath ?? id) : id;
 
     // 削除実行
     try {
