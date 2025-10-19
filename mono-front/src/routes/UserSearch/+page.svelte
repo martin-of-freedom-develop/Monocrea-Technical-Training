@@ -232,6 +232,7 @@
    * 画面状態（$state は Reactivity API：変更で自動再描画）
    * ===============================
    */
+  let pwVisible = $state(false);
   // true=全件取得 / false=完全一致検索
   let allMode = $state(form?.allMode ?? false);
   // 検索条件：ユーザID
@@ -628,12 +629,33 @@
             UIMaterial.material13
           }</label>
 
-          <input id="nu-pw" name="userPW" bind:value={
-            createModel.userPW
-          } required minlength="4" maxlength="50" placeholder={
-            UIMaterial.material22
-          } />
-
+          <div style="display:flex; align-items:center; gap:.5rem;">
+            <input
+              id="nu-pw"
+              name="userPW"
+              bind:value={createModel.userPW}
+              type={pwVisible ? 'text' : 'password'}
+              required
+              minlength="4"
+              maxlength="50"
+              placeholder={UIMaterial.material22}
+              autocomplete="new-password"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              aria-describedby="pw-note"
+            />
+            <button
+              type="button"
+              class="secondary"
+              aria-pressed={pwVisible}
+              aria-label={pwVisible ? 'パスワードを隠す' : 'パスワードを表示'}
+              onclick={() => (pwVisible = !pwVisible)}
+            >
+              {pwVisible ? '隠す' : '表示'}
+            </button>
+          </div>
+          
           <!--作成日-->
           <label for="nu-date">{
             UIMaterial.material14

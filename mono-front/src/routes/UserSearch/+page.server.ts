@@ -176,7 +176,7 @@ const REST_BACKEND: Backend = {
 };
 
 // 実際に使用するバックエンドをスイッチ
-const BACKEND = changeBackendFlg === 1 ? JSON_BACKEND : REST_BACKEND;
+const BACKEND = changeBackendFlg === 0 ? JSON_BACKEND : REST_BACKEND;
 
 /**
  * ============================
