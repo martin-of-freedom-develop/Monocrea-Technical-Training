@@ -312,7 +312,7 @@ export const load = (async ({
     };
   } catch {
     // 簡易ロガー
-    console.log('画面名：ユーザ検索画面 ' + 'ユーザID：' + userIDParam + ',メッセージ：' + successMessage);
+    console.log('画面名：ユーザ詳細画面 ' + 'ユーザID：' + userIDParam + ',メッセージ：' + successMessage);
     // 通信例外時もrow:null
     return {
       userID: userIDParam,
@@ -347,9 +347,9 @@ export const actions = {
     if (!userID) {
       // 簡易ロガー
       console.log('=====ユーザIDのリクエストは必須です。リクエスト情報=====')
-      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザID：' + userID);
-      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザ名：' + userName);
-      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザPW：' + userPW);
+      console.log('画面名：ユーザ詳細画面 ' + 'リクエストユーザID：' + userID);
+      console.log('画面名：ユーザ詳細画面 ' + 'リクエストユーザ名：' + userName);
+      console.log('画面名：ユーザ詳細画面 ' + 'リクエストユーザPW：' + userPW);
       console.log('=====ユーザIDのリクエストは必須です。リクエスト情報=====')
       return fail(400, {
         error: 'ユーザIDは必須です。', values: {
@@ -363,9 +363,9 @@ export const actions = {
     if (!userName) {
       // 簡易ロガー
       console.log('=====ユーザ名のリクエストは必須です。リクエスト情報=====')
-      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザID：' + userID)
-      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザ名：' + userName);
-      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザPW：' + userPW)
+      console.log('画面名：ユーザ詳細画面 ' + 'リクエストユーザID：' + userID)
+      console.log('画面名：ユーザ詳細画面 ' + 'リクエストユーザ名：' + userName);
+      console.log('画面名：ユーザ詳細画面 ' + 'リクエストユーザPW：' + userPW)
       console.log('=====ユーザ名のリクエストは必須です。リクエスト情報=====')
       return fail(400, {
         error: 'ユーザ名は必須です。', values: {
@@ -384,7 +384,7 @@ export const actions = {
         foundRow = await fetchOneByUserID(fetch, userIDParam);
         if (!foundRow) {
           // 簡易ロガー
-          console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザIDが再解決処理で見つかりませんでした。リクエストされたユーザID：' + userIDParam)
+          console.log('画面名：ユーザ詳細画面 ' + 'リクエストユーザIDが再解決処理で見つかりませんでした。リクエストされたユーザID：' + userIDParam)
           return fail(404, {
             error: `ユーザ「${
               userIDParam
@@ -394,7 +394,7 @@ export const actions = {
         id = foundRow.id;
       } catch {
         // 簡易ロガー
-        console.log('画面名：ユーザ検索画面 ' + 'ユーザ情報の更新に失敗しました。バックエンドシステムが起動しているかを確認してください。')
+        console.log('画面名：ユーザ詳細画面 ' + 'ユーザ情報の更新に失敗しました。バックエンドシステムが起動しているかを確認してください。')
         return fail(500, {
           error: 'ユーザ情報の更新に失敗しました（通信エラー）。'
         });
@@ -421,8 +421,8 @@ export const actions = {
         if (res.status === 409) {
           // 簡易ロガー
           console.log('=====このユーザIDは既に存在します。=====')
-          console.log('画面名：ユーザ検索画面 ' + 'レスポンスステータス：' + res.status)
-          console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザID：' + userID)
+          console.log('画面名：ユーザ詳細画面 ' + 'レスポンスステータス：' + res.status)
+          console.log('画面名：ユーザ詳細画面 ' + 'リクエストユーザID：' + userID)
           console.log('=====このユーザIDは既に存在します。=====')
           return fail(409, {
             error: 'このユーザIDは既に存在します。'
@@ -430,8 +430,8 @@ export const actions = {
         }
         // 簡易ロガー
         console.log('=====ユーザ情報の更新に失敗しました。=====')
-        console.log('画面名：ユーザ検索画面 ' + 'レスポンスステータス：' + res.status)
-        console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザID：' + userID)
+        console.log('画面名：ユーザ詳細画面 ' + 'レスポンスステータス：' + res.status)
+        console.log('画面名：ユーザ詳細画面 ' + 'リクエストユーザID：' + userID)
         console.log('=====ユーザ情報の更新に失敗しました。=====')
         return fail(res.status, {
           error: 'ユーザ情報の更新に失敗しました。'
@@ -440,7 +440,7 @@ export const actions = {
     } catch {
       // 簡易ロガー
       console.log('=====ユーザ情報の更新に失敗しました（通信エラー）=====')
-      console.log('画面名：ユーザ検索画面 ' + 'メッセージ：バックエンドシステムが起動しているかもしくはエンドポイントを確認してください。')
+      console.log('画面名：ユーザ詳細画面 ' + 'メッセージ：バックエンドシステムが起動しているかもしくはエンドポイントを確認してください。')
       console.log('=====ユーザ情報の更新に失敗しました（通信エラー）=====')
       return fail(500, {
         error: 'ユーザ情報の更新に失敗しました（通信エラー）。'
@@ -494,8 +494,8 @@ export const actions = {
       if (!res.ok) {
         // 簡易ロガー
         console.log('=====ユーザの削除に失敗しました。=====')
-        console.log('画面名：ユーザ検索画面 ' + 'レスポンスステータス：' + res.status)
-        console.log('画面名：ユーザ検索画面 ' + 'リクエストURL：' + delUrl)
+        console.log('画面名：ユーザ詳細画面 ' + 'レスポンスステータス：' + res.status)
+        console.log('画面名：ユーザ詳細画面 ' + 'リクエストURL：' + delUrl)
         console.log('=====ユーザの削除に失敗しました。=====')
         return fail(res.status, {
           error: 'ユーザの削除に失敗しました。'
@@ -504,7 +504,7 @@ export const actions = {
     } catch {
       // 簡易ロガー
       console.log('=====ユーザの削除に失敗しました（通信エラー）=====')
-      console.log('画面名：ユーザ検索画面 ' + 'メッセージ：バックエンドシステムが起動しているかもしくはエンドポイントを確認してください。')
+      console.log('画面名：ユーザ詳細画面 ' + 'メッセージ：バックエンドシステムが起動しているかもしくはエンドポイントを確認してください。')
       console.log('=====ユーザの削除に失敗しました（通信エラー）=====')
       return fail(500, {
         error: 'ユーザの削除に失敗しました（通信エラー）。'
