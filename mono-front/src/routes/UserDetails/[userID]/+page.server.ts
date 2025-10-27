@@ -15,6 +15,7 @@
  * 作成者：深谷 理幸
  * =======================================================================
  */
+
 // SSR 有効
 export const ssr = true;
 // 動的ページのためプリレンダーは無効
@@ -140,7 +141,6 @@ const JSON_BACKEND: Backend = {
   buildDeleteUrl(entityId) {
     return `${this.base}/${encodeURIComponent(String(entityId))}`;
   },
-
   normalizeToOne(json) {
     if (Array.isArray(json)) {
       return json[0] ? normalizeOne(json[0] as Record<string, unknown>) : null;
@@ -159,7 +159,7 @@ const JSON_BACKEND: Backend = {
 
 /**
  * ============================
- * REST API 実装
+ * REST API（Quarkus） 実装
  * ============================
  */
 const REST_BACKEND: Backend = {
@@ -279,7 +279,7 @@ export const load = (async ({
   }
 
   if (url.searchParams.get('deleted')) {
-    successMessage = 'ユーザを削除しました。';
+    successMessage = 'ユーザ情報を削除しました。';
   }
 
   // パラメータ欠落時はそのまま返す（row:null）
@@ -293,8 +293,10 @@ export const load = (async ({
 
   try {
     // userID→1件（配列または1件）取得
-    const res = await fetch(BACKEND.buildGetUrl(userIDParam), {cache: 'no-store'});
-    
+    const res = await fetch(BACKEND.buildGetUrl(userIDParam),{cache: 'no-store'});
+    const json = await safeJson<unknown>(res);
+    const row = json ? BACKEND.normalizeToOne(json) : null;
+
     if (!res.ok) {
       // 404/5xx等はrow:nullで返す（フロント側がフォールバック表示）
       return {
@@ -303,15 +305,14 @@ export const load = (async ({
         successMessage
       };
     }
-
-    const json = await safeJson<unknown>(res);
-    const row = json ? BACKEND.normalizeToOne(json) : null;
     return {
       userID: userIDParam,
       row,
       successMessage
     };
   } catch {
+    // 簡易ロガー
+    console.log('画面名：ユーザ検索画面 ' + 'ユーザID：' + userIDParam + ',メッセージ：' + successMessage);
     // 通信例外時もrow:null
     return {
       userID: userIDParam,
@@ -344,6 +345,12 @@ export const actions = {
 
     // 簡易バリデーション（サーバ側）
     if (!userID) {
+      // 簡易ロガー
+      console.log('=====ユーザIDのリクエストは必須です。リクエスト情報=====')
+      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザID：' + userID);
+      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザ名：' + userName);
+      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザPW：' + userPW);
+      console.log('=====ユーザIDのリクエストは必須です。リクエスト情報=====')
       return fail(400, {
         error: 'ユーザIDは必須です。', values: {
           userID,
@@ -354,6 +361,12 @@ export const actions = {
     }
 
     if (!userName) {
+      // 簡易ロガー
+      console.log('=====ユーザ名のリクエストは必須です。リクエスト情報=====')
+      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザID：' + userID)
+      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザ名：' + userName);
+      console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザPW：' + userPW)
+      console.log('=====ユーザ名のリクエストは必須です。リクエスト情報=====')
       return fail(400, {
         error: 'ユーザ名は必須です。', values: {
           userID,
@@ -370,6 +383,8 @@ export const actions = {
       try {
         foundRow = await fetchOneByUserID(fetch, userIDParam);
         if (!foundRow) {
+          // 簡易ロガー
+          console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザIDが再解決処理で見つかりませんでした。リクエストされたユーザID：' + userIDParam)
           return fail(404, {
             error: `ユーザ「${
               userIDParam
@@ -378,12 +393,13 @@ export const actions = {
         }
         id = foundRow.id;
       } catch {
+        // 簡易ロガー
+        console.log('画面名：ユーザ検索画面 ' + 'ユーザ情報の更新に失敗しました。バックエンドシステムが起動しているかを確認してください。')
         return fail(500, {
           error: 'ユーザ情報の更新に失敗しました（通信エラー）。'
         });
       }
     }
-
     const idForPath: string | number = (changeBackendFlg === 0) ? (foundRow?.idPath ?? id) : id;
 
     // 更新リクエスト生成＆実行
@@ -403,15 +419,29 @@ export const actions = {
 
       if (!res.ok) {
         if (res.status === 409) {
+          // 簡易ロガー
+          console.log('=====このユーザIDは既に存在します。=====')
+          console.log('画面名：ユーザ検索画面 ' + 'レスポンスステータス：' + res.status)
+          console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザID：' + userID)
+          console.log('=====このユーザIDは既に存在します。=====')
           return fail(409, {
             error: 'このユーザIDは既に存在します。'
           });
         }
+        // 簡易ロガー
+        console.log('=====ユーザ情報の更新に失敗しました。=====')
+        console.log('画面名：ユーザ検索画面 ' + 'レスポンスステータス：' + res.status)
+        console.log('画面名：ユーザ検索画面 ' + 'リクエストユーザID：' + userID)
+        console.log('=====ユーザ情報の更新に失敗しました。=====')
         return fail(res.status, {
           error: 'ユーザ情報の更新に失敗しました。'
         });
       }
     } catch {
+      // 簡易ロガー
+      console.log('=====ユーザ情報の更新に失敗しました（通信エラー）=====')
+      console.log('画面名：ユーザ検索画面 ' + 'メッセージ：バックエンドシステムが起動しているかもしくはエンドポイントを確認してください。')
+      console.log('=====ユーザ情報の更新に失敗しました（通信エラー）=====')
       return fail(500, {
         error: 'ユーザ情報の更新に失敗しました（通信エラー）。'
       });
@@ -462,11 +492,20 @@ export const actions = {
         method: 'DELETE'
       });
       if (!res.ok) {
+        // 簡易ロガー
+        console.log('=====ユーザの削除に失敗しました。=====')
+        console.log('画面名：ユーザ検索画面 ' + 'レスポンスステータス：' + res.status)
+        console.log('画面名：ユーザ検索画面 ' + 'リクエストURL：' + delUrl)
+        console.log('=====ユーザの削除に失敗しました。=====')
         return fail(res.status, {
           error: 'ユーザの削除に失敗しました。'
         });
       }
     } catch {
+      // 簡易ロガー
+      console.log('=====ユーザの削除に失敗しました（通信エラー）=====')
+      console.log('画面名：ユーザ検索画面 ' + 'メッセージ：バックエンドシステムが起動しているかもしくはエンドポイントを確認してください。')
+      console.log('=====ユーザの削除に失敗しました（通信エラー）=====')
       return fail(500, {
         error: 'ユーザの削除に失敗しました（通信エラー）。'
       });
