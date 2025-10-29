@@ -248,7 +248,7 @@
           </tr>
           <tr>
             <th>{UIMaterial.material04}</th>
-            <td><input name="userPW" bind:value={edit.userPW} type="text" required minlength="4" maxlength="50" placeholder={UIMaterial.material04} /></td>
+            <td><input name="userPW" bind:value={edit.userPW} type="password" required minlength="4" maxlength="50" placeholder={UIMaterial.material04} /></td>
           </tr>
           <tr>
             <th>{UIMaterial.material05}</th>
