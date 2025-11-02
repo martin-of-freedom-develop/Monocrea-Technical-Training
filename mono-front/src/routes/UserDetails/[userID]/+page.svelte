@@ -157,14 +157,8 @@
    * インポート
    * ===============================
   */
-  import type {
-    PageData
-  } from './$types';
-
-  import {
-    UIMaterial
-  } from '../UserDetailsMaterial';
-
+  import type {PageData} from './$types';
+  import {UIMaterial} from '../UserDetailsMaterial';
   import MessagePopup from '../MessagePopup.svelte';
 
   /**
@@ -174,9 +168,7 @@
    * - form:action実行時の戻り（errorなど）
    * ===============================
    */
-  const {
-    data: raw, form
-  } = $props();
+  const {data: raw, form} = $props();
 
   const data = raw as PageData;
 
@@ -189,7 +181,6 @@
    */
   let successPopup = $state<string>(data.successMessage ?? '');
   let errorPopup   = $state<string>(form?.error ?? '');
-
   let formEl: HTMLFormElement | null = null;
 
   /**
@@ -244,61 +235,31 @@
       <table>
         <tbody>
           <tr>
-            <th>{
-              UIMaterial.material02
-            }</th>
-
+            <th>{UIMaterial.material02}</th>
             <!--ユーザID（変更可能。変更時は更新後のURLも変わる）-->
             <td>
-              <input name="userID" bind:value={
-                edit.userID
-              } required minlength="2" maxlength="30" placeholder="ユーザID" />
-
-              <div class="note">{
-                UIMaterial.material06
-              }</div>
-
+              <input name="userID" bind:value={edit.userID} required minlength="2" maxlength="30" placeholder={UIMaterial.material02} />
+              <div class="note">{UIMaterial.material06}</div>
             </td>
           </tr>
           <tr>
-            <th>{
-              UIMaterial.material03
-            }</th>
-
-            <td><input name="userName" bind:value={
-              edit.userName
-            } required minlength="2" maxlength="30" placeholder="ユーザ名" /></td>
-
+            <th>{UIMaterial.material03}</th>
+            <td><input name="userName" bind:value={edit.userName} required minlength="2" maxlength="30" placeholder={UIMaterial.material02} /></td>
           </tr>
           <tr>
-            <th>{
-              UIMaterial.material04
-            }</th>
-
-            <td><input name="userPW" bind:value={
-              edit.userPW
-            } type="text" required minlength="4" maxlength="50" placeholder="パスワード" /></td>
-
+            <th>{UIMaterial.material04}</th>
+            <td><input name="userPW" bind:value={edit.userPW} type="password" required minlength="4" maxlength="50" placeholder={UIMaterial.material04} /></td>
           </tr>
           <tr>
-            <th>{
-              UIMaterial.material05
-            }</th>
-
-            <td>{
-              data.row.accountCreate ?? '-'
-            }</td>
+            <th>{UIMaterial.material05}</th>
+            <td>{data.row.accountCreate ?? '-'}</td>
           </tr>
         </tbody>
       </table>
-
       <!--アクション行：保存／削除／戻る-->
       <div class="actions">
         <!--保存（updateアクションへPOST） -->
-        <button type="submit" class="btn">{
-          UIMaterial.material07
-        }</button>
-
+        <button type="submit" class="btn">{UIMaterial.material07}</button>
         <!--svelte-ignore event_directive_deprecated-->
         <!--
           削除（delete アクションへ POST）
@@ -310,44 +271,31 @@
           class="btn danger"
           formaction="?/delete"
           formmethod="POST"
-          on:click|preventDefault={
-            onDeleteClick
-          }
+          on:click|preventDefault={onDeleteClick}
         >
-          {
-            UIMaterial.material08
-          }
+          {UIMaterial.material08}
         </button>
-
         <!--検索画面へ戻る-->
-        <a class="btn secondary" href="/UserSearch">{
-          UIMaterial.material09
-        }</a>
-
+        <a class="btn secondary" href="/UserSearch">{UIMaterial.material09}</a>
       </div>
     </form>
   {:else}
     <!--取得失敗時のフォールバック表示-->
-    <p style="color:#a00; text-align:center; margin-top:1rem;">{
-      UIMaterial.material10
-    }</p>
-
+    <p style="color:#a00; text-align:center; margin-top:1rem;">{UIMaterial.material10}</p>
     <div class="actions">
-      <a class="btn secondary" href="/UserSearch">{
-        UIMaterial.material11
-      }</a>
+      <a class="btn secondary" href="/UserSearch">{UIMaterial.material11}</a>
     </div>
   {/if}
 
   <!--
-  ===============================
+  =========================================================================
     メッセージ表示（成功／失敗を分離）
     - errorPopup：エラー時のみ表示。サーバアクションのfail()等で渡された文言を表示
     - ErrorPopupのonCloseではerrorPopupのみをクリア（成功メッセージには影響しない）
     - successPopup：成功時のみ表示。load側で?updated/?deletedなどを解釈して設定
     - 成功トーストの×ボタン（onclick）でsuccessPopupをクリア
     - イベントはSvelte構文に合わせてonclickを使用
-    ===============================
+  =========================================================================
   -->
   <MessagePopup
     message={
@@ -361,10 +309,7 @@
 
   {#if successPopup}
     <div class="toast success" role="status" aria-live="polite">
-      <span>{
-        successPopup
-      }</span>
-      
+      <span>{successPopup}</span>
       <!-- svelte-ignore event_directive_deprecated -->
       <button aria-label="閉じる" on:click={
         () => (successPopup = '')

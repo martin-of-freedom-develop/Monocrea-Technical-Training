@@ -235,24 +235,32 @@ export const actions = {
     // 厳密一致検索時はサーバリクエスト前に基本バリデーション
     if (!allMode) {
       if (!userID) {
+          // 簡易ロガー
+          console.log('画面名：ユーザ検索画面 ' + 'メッセージ：' + 'ユーザIDを入力してください。')
         return {
           error: 'ユーザIDを入力してください。'
         };
       }
       
       if (!userName) {
+          // 簡易ロガー
+          console.log('画面名：ユーザ検索画面 ' + 'メッセージ：' + 'ユーザ名を入力してください。')
         return {
           error: 'ユーザ名を入力してください。'
         };
       }
       
       if (userID.length < 6 || userID.length >= 20) {
+          // 簡易ロガー
+          console.log('画面名：ユーザ検索画面 ' + 'メッセージ：' + 'ユーザIDは6文字以上20文字未満で入力してください。' + '入力されたユーザIDの文字列（最小・最大）：' + userID.length + '・' + userID.length)
         return {
           error: 'ユーザIDは6文字以上20文字未満で入力してください。'
         };
       }
       
       if (userName.length < 2 || userName.length >= 30) {
+          // 簡易ロガー
+          console.log('画面名：ユーザ検索画面 ' + 'メッセージ：' + 'ユーザ名は2文字以上30文字未満で入力してください。' + '入力されたユーザ名の文字列（最小・最大）：' + userName.length + '・' + userName.length)
         return {
           error: 'ユーザ名は2文字以上30文字未満で入力してください。'
         };
